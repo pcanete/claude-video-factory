@@ -49,11 +49,11 @@ verificado y lo que está inferido sobre cómo le habla el paquete a Higgsfield.
 
 ### 2. Escribir el `SHOT_LIST.json`
 
-Un plano por elemento. Cada uno con los seis bloques del prompt (sujeto, acción, cámara, luz,
-entorno, estilo), duración, empalme con el siguiente, y **el veredicto de cubeta ya decidido
-para el contenido específico de este plano** — no alcanza con heredar la cubeta del
-`SHOT_TEMPLATE` sin revisar: el mismo movimiento de cámara puede ser cubeta A con un paisaje y
-cubeta C con dos personas tocándose las manos.
+Un plano por elemento. Cada uno con los siete bloques del prompt (sujeto, vestuario, acción,
+cámara, luz, entorno, estilo), duración, empalme con el siguiente, y **el veredicto de cubeta
+ya decidido para el contenido específico de este plano** — no alcanza con heredar la cubeta
+del `SHOT_TEMPLATE` sin revisar: el mismo movimiento de cámara puede ser cubeta A con un
+paisaje y cubeta C con dos personas tocándose las manos.
 
 Si un plano usa un personaje, `activo_identidad` apunta al archivo exacto del
 `CHARACTER_PACK` que ancla ese plano (qué ángulo, qué escala, qué expresión). El validador
@@ -66,7 +66,19 @@ keyframe nuevo de esa escena antes de animarlo — nunca pasar la foto del pack 
 modelo de video pidiéndole a la vez identidad y una escena que esa foto no tiene.** Saltear
 este paso es lo que rompió 6 de 8 planos en la primera corrida real de este skill.
 
-### 3. Validar antes de compilar
+### 3. Lectura de director — antes de validar, no después
+
+Recorrer `references/lectura-de-director.md` sobre el `SHOT_LIST` recién escrito. No es un
+paso opcional para piezas "grandes": es lo que evita que el vestuario, un objeto recurrente o
+un peinado se arrastren en silencio de la foto de referencia — exactamente lo que le pasó al
+vestuario de Valentina en la primera pieza real, sin que nadie lo hubiera decidido.
+
+Por cada eje de la lista (vestuario, props recurrentes, peinado/estado, entorno/luz
+compartido): o hay una decisión explícita escrita en el plano, o hay una pregunta hecha al
+usuario antes de seguir. Quien pide la pieza casi nunca tiene el ojo entrenado para notar
+estas inconsistencias solo — para eso es este paso.
+
+### 4. Validar antes de compilar
 
 ```
 node scripts/validate-shot-list.mjs --shot-list <archivo>
@@ -77,16 +89,16 @@ pack o que el pack marca roto. Avisa sin bloquear: planos más largos que el lí
 nativo asumido (`--limite-nativo-s`, default 10), suma de duraciones lejos del objetivo
 declarado, diálogo que va a necesitar audio de referencia aparte.
 
-### 4. Compilar
+### 5. Compilar
 
 ```
 node scripts/compilar-higgsfield.mjs --shot-list <archivo> --out <directorio>
 ```
 
 Produce `00-checklist.md` (resumen de la pieza, cubetas B/C a resolver antes de producir,
-wardrobe candidato y límites conocidos heredados del pack, tabla de planos) y una ficha por
-plano en `planos/` con el prompt de seis bloques listo para pegar, más `referencias/` con las
-imágenes de identidad que hacen falta subir.
+wardrobe candidato y límites conocidos heredados del pack, tabla de planos con su columna de
+vestuario) y una ficha por plano en `planos/` con el prompt de siete bloques listo para
+pegar, más `referencias/` con las imágenes de identidad que hacen falta subir.
 
 ## Verificar que las compuertas funcionan
 

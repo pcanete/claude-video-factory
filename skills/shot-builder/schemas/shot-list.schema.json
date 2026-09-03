@@ -51,7 +51,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["indice", "funcion", "sujeto", "accion", "camara", "luz", "entorno", "estilo", "duracion_s", "cubeta"],
+        "required": ["indice", "funcion", "sujeto", "accion", "camara", "luz", "entorno", "estilo", "vestuario", "duracion_s", "cubeta"],
         "additionalProperties": false,
         "properties": {
           "indice": { "type": "integer" },
@@ -72,6 +72,10 @@
           "luz": { "type": "string" },
           "entorno": { "type": "string" },
           "estilo": { "type": "string", "description": "Look, lente, grano, paleta. Lo que en video-reference-scanner sale de VIDEO_DNA." },
+          "vestuario": {
+            "type": "string",
+            "description": "Decisión explícita, nunca implícita. Dos formas válidas: (a) describir la prenda/look de este plano, o (b) el literal 'hereda del activo_identidad' cuando se decide a propósito sostener el mismo vestuario que trae la foto de referencia. Lo que NO es válido es dejarlo vacío o disuelto en 'estilo' — un mecanismo de identidad arrastra el vestuario de su foto de referencia en silencio si no se lo contradice explícitamente, verificado con costo real: ver references/lectura-de-director.md."
+          },
           "dialogo": {
             "type": ["string", "null"],
             "description": "Literal, entre comillas conceptualmente. Nunca parafrasear: la síntesis de labios se rompe con paráfrasis."

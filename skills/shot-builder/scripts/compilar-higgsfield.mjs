@@ -53,20 +53,30 @@ const NOTA_EMPALME = {
   flash_o_fundido_blanco: "flash/fundido a blanco antes del plano siguiente",
 };
 
-// Los seis bloques, en orden. Ver references/anatomia-de-prompt.md del skill.
+// Siete bloques, en orden. Ver references/anatomia-de-prompt.md del skill.
+//
+// Wardrobe es un bloque explícito a propósito: un mecanismo de identidad
+// arrastra el vestuario de su foto de referencia si el prompt no lo
+// contradice — verificado con costo real (ver references/lectura-de-director.md).
+// "hereda del activo_identidad" es una decisión válida, no una ausencia: en
+// ese caso no se agrega la línea, para no competir contra la foto de
+// referencia con una descripción redundante del mismo vestuario.
+const HEREDA = /^hereda\b/i;
+
 function armarPrompt(p) {
   const camara = [TERMINO_MOVIMIENTO[p.camara.movimiento] || p.camara.movimiento];
   if (p.camara.intensidad) camara.push(p.camara.intensidad);
   if (p.camara.angulo && p.camara.angulo !== "neutro") camara.push(TERMINO_ANGULO[p.camara.angulo]);
 
-  const bloques = [
-    `Subject: ${p.sujeto}`,
+  const bloques = [`Subject: ${p.sujeto}`];
+  if (!HEREDA.test(p.vestuario)) bloques.push(`Wardrobe: ${p.vestuario}`);
+  bloques.push(
     `Action: ${p.accion}`,
     `Camera: ${camara.join(", ")}`,
     `Light: ${p.luz}`,
     `Environment: ${p.entorno}`,
     `Style: ${p.estilo}`,
-  ];
+  );
   if (p.dialogo) bloques.push(`Dialogue (literal, do not paraphrase): "${p.dialogo}"`);
   return bloques.join("\n");
 }
@@ -168,10 +178,10 @@ function checklist(doc, pack) {
 
   lineas.push("## Planos");
   lineas.push("");
-  lineas.push("| # | Función | Duración | Cubeta | Identidad | Empalme siguiente |");
-  lineas.push("|---|---|---|---|---|---|");
+  lineas.push("| # | Función | Duración | Cubeta | Identidad | Vestuario | Empalme siguiente |");
+  lineas.push("|---|---|---|---|---|---|---|");
   for (const p of doc.planos) {
-    lineas.push(`| ${p.indice} | ${p.funcion} | ${p.duracion_s}s | ${p.cubeta} | ${p.activo_identidad ? "sí" : "—"} | ${p.empalme_siguiente || "—"} |`);
+    lineas.push(`| ${p.indice} | ${p.funcion} | ${p.duracion_s}s | ${p.cubeta} | ${p.activo_identidad ? "sí" : "—"} | ${p.vestuario} | ${p.empalme_siguiente || "—"} |`);
   }
   lineas.push("");
 

@@ -69,6 +69,7 @@ const planoBase = {
   luz: "hora dorada",
   entorno: "calle vacía",
   estilo: "cinematográfico, 35mm",
+  vestuario: "campera de cuero negra",
   duracion_s: 4,
   empalme_siguiente: "corte_duro",
   activo_identidad: "turnaround/frontal.jpg",
@@ -100,6 +101,16 @@ const shotListSinAlternativa = {
 const rutaSinAlternativa = path.join(dir, "SHOT_LIST.sin-alternativa.json");
 escribir(rutaSinAlternativa, shotListSinAlternativa);
 run([path.join(HERE, "validate-shot-list.mjs"), "--shot-list", rutaSinAlternativa], { expect: "fail" });
+
+// --- variante rota: sin vestuario decidido -----------------------------------
+// El campo es obligatorio a propósito: forzar una decisión explícita (aunque
+// esa decisión sea "hereda del activo_identidad") es lo que evita que el
+// vestuario se arrastre en silencio de la foto de referencia.
+const { vestuario: _sinVestuario, ...planoSinVestuario } = planoBase;
+const shotListSinVestuario = { ...shotListValido, planos: [planoSinVestuario] };
+const rutaSinVestuario = path.join(dir, "SHOT_LIST.sin-vestuario.json");
+escribir(rutaSinVestuario, shotListSinVestuario);
+run([path.join(HERE, "validate-shot-list.mjs"), "--shot-list", rutaSinVestuario], { expect: "fail" });
 
 // --- variante rota: activo_identidad que no existe en el pack ---------------
 const shotListActivoInexistente = {

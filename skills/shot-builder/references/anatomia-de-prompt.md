@@ -1,9 +1,13 @@
 # Anatomía del prompt por plano
 
-Seis bloques, en este orden, uno por línea. No prosa suelta — el compilador arma el prompt
+Siete bloques, en este orden, uno por línea. No prosa suelta — el compilador arma el prompt
 final concatenando estos bloques, así que si falta uno acá falta en el resultado.
 
-`Sujeto → Acción → Cámara → Luz → Entorno → Estilo`
+`Sujeto → Vestuario → Acción → Cámara → Luz → Entorno → Estilo`
+
+Vestuario es el bloque que se agregó después de encontrar, con costo real, que un mecanismo
+de identidad arrastra el vestuario de su foto de referencia si nada lo contradice — ver
+`references/lectura-de-director.md`.
 
 Mismo principio que ya documentó `video-reference-scanner`: un prompt de 60 palabras
 estructurado en bloques rinde más que 200 palabras en prosa. El modelo mapea cada bloque a
@@ -14,6 +18,16 @@ qué eje.
 
 Quién o qué está en el cuadro. Si es el personaje de un `CHARACTER_PACK`, usar el nombre tal
 como figura en `personaje.nombre` del pack — no inventar un alias.
+
+## Vestuario
+
+Decisión explícita, siempre. Dos formas válidas: describir la prenda de este plano, o
+escribir el literal `hereda del activo_identidad` cuando la decisión es sostener el vestuario
+que ya trae la foto de referencia. Lo que no es válido es no decidir — ver
+`references/lectura-de-director.md` para la evidencia real detrás de esta regla.
+
+Cuando dos planos tienen que verse con el mismo vestuario, el texto tiene que ser literal
+idéntico entre ambos — mismo motivo que ya rige `entorno`/`luz` cuando comparten set.
 
 ## Acción
 

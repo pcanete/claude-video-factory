@@ -151,6 +151,26 @@ function main() {
     }
   }
 
+  // Dos planos con el mismo texto de entorno declaran el mismo set. Si el
+  // vestuario no coincide igual de literal, es la misma clase de deriva que ya
+  // se encontró con costo real en cámara: dos llamadas independientes al
+  // generador, sin memoria entre sí, no van a inventar el mismo vestuario solas.
+  const porEntorno = new Map();
+  for (const p of doc.planos) {
+    if (!porEntorno.has(p.entorno)) porEntorno.set(p.entorno, []);
+    porEntorno.get(p.entorno).push(p);
+  }
+  for (const [entorno, grupo] of porEntorno) {
+    if (grupo.length < 2) continue;
+    const vestuarios = new Set(grupo.map((p) => p.vestuario));
+    if (vestuarios.size > 1) {
+      avisos.push(
+        `planos ${grupo.map((p) => p.indice).join(", ")} comparten el mismo entorno pero declaran vestuario distinto: ` +
+        `${[...vestuarios].map((v) => `"${v}"`).join(" / ")}. Si tienen que verse como la misma sesión, usar el mismo texto literal de vestuario.`
+      );
+    }
+  }
+
   const objetivo = doc.pieza.duracion_objetivo_s;
   if (Math.abs(sumaDuracion - objetivo) > objetivo * 0.15) {
     avisos.push(`la suma de planos (${sumaDuracion.toFixed(1)}s) se aleja más de 15% del objetivo declarado (${objetivo}s).`);
