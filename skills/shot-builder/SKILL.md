@@ -60,6 +60,12 @@ Si un plano usa un personaje, `activo_identidad` apunta al archivo exacto del
 rechaza referencias a activos que no están catalogados en el pack, y avisa si el activo es una
 expresión todavía sin probar o marcada como que no sostiene identidad.
 
+**Regla verificada con costo real (ver `references/higgsfield-dialecto.md`): si el `entorno`
+del plano es distinto al de la foto que declara `activo_identidad`, hace falta generar un
+keyframe nuevo de esa escena antes de animarlo — nunca pasar la foto del pack directo a un
+modelo de video pidiéndole a la vez identidad y una escena que esa foto no tiene.** Saltear
+este paso es lo que rompió 6 de 8 planos en la primera corrida real de este skill.
+
 ### 3. Validar antes de compilar
 
 ```

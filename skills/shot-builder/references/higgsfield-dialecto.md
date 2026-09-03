@@ -67,6 +67,40 @@ Costo real de este test (créditos consumidos según `account status`, no la est
 y un video de 5s en `kling3_0` — 7,87 créditos en total por los tres, bastante menos que la
 suma de las estimaciones individuales.
 
+## `start_image` no es una referencia de identidad — es el primer cuadro literal
+
+Verificado con una corrida real de 9 planos (2026-09-03, ~52 créditos): usar una foto
+existente del `CHARACTER_PACK` como `start_image` de `kling3_0`, **mientras el prompt pide
+una escena distinta a la de esa foto**, da resultado inconsistente. De 8 planos con este
+patrón, 2 obedecieron la escena nueva del prompt y 6 se quedaron con la escena original de
+la foto de referencia (mismo sofá, mismo living, misma estantería), ignorando entorno y
+estilo pedidos. El único plano que generó una imagen nueva **sin** ninguna foto de
+referencia atada (`nano_banana_flash`, solo texto) obedeció el prompt con precisión.
+
+**Causa:** `start_image` funciona como el primer cuadro real del video — "animá desde acá" —
+no como un ancla de identidad portable a cualquier escena nueva. Pedirle a la vez "usá esta
+cara" y "pero en un lugar totalmente distinto" es una contradicción que el modelo resuelve
+de forma no confiable.
+
+**Esto ya estaba escrito en el research del frente** (`29-research-video-generativo-identidad.md`,
+Hallazgo 3): el patrón dominante es generar primero la imagen clave con un modelo de imagen,
+recién después animar esa imagen. Saltear ese paso — como se hizo en esta corrida, por
+apuro — es lo que produjo la falla.
+
+**Regla para `shot-builder` de acá en adelante:** cuando el `entorno` de un plano sea
+distinto al de la foto que declara `activo_identidad`, el flujo correcto es en dos pasos:
+
+1. Generar el keyframe de la escena nueva con un modelo de imagen
+   (`nano_banana_flash`, `--image-references <activo_identidad>`, prompt con los seis
+   bloques completos) — verificado que esto sí respeta identidad y escena nueva a la vez.
+2. Usar ESE keyframe resultante como `start_image` del modelo de video, con un prompt que
+   describa **solo el movimiento y la acción a agregar**, no la escena entera de nuevo — la
+   escena ya está fijada por el keyframe.
+
+Un solo paso (foto original del pack directo a `start_image` de video) alcanza solamente
+cuando el plano usa la misma escena que la foto de referencia — recién ahí es seguro saltear
+el paso intermedio.
+
 ## Inferido (todavía no verificado con una corrida real)
 
 - Los nombres exactos de presets de cámara con los que Cinema Studio (la interfaz web)
