@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CHARACTER_PACK",
+  "description": "Identidad de un personaje como activo versionado y portable: mecanismo de identidad, turnaround, escalas, expresiones probadas, wardrobe candidato y límites conocidos.",
+  "type": "object",
+  "required": ["contrato", "version", "personaje", "mecanismo_identidad", "activos", "wardrobe", "limites_conocidos"],
+  "additionalProperties": false,
+  "properties": {
+    "contrato": { "const": "CHARACTER_PACK" },
+    "version": { "type": "string" },
+    "generado": { "type": "string" },
+    "personaje": {
+      "type": "object",
+      "required": ["nombre"],
+      "properties": {
+        "nombre": { "type": "string" },
+        "cliente": { "type": "string" }
+      }
+    },
+    "mecanismo_identidad": {
+      "type": "object",
+      "required": ["tipo", "portabilidad"],
+      "properties": {
+        "tipo": {
+          "enum": ["lora_propio", "soul_id_vendor", "fine_tune_vendor", "referencia_suelta", "captura_video_vendor"]
+        },
+        "detalle": {
+          "type": "object",
+          "description": "Específico del mecanismo: trigger word y URL del LoRA, ID de Soul ID y plataforma, ruta de las imágenes de referencia, etc."
+        },
+        "portabilidad": {
+          "enum": ["alta", "nula"],
+          "description": "alta: el activo sobrevive a un cambio de vendor (LoRA propio, referencia suelta). nula: queda encerrado en la plataforma (Soul ID, fine-tune de vendor). Todo lo de portabilidad nula se trata como caché desechable, no como el activo real."
+        }
+      }
+    },
+    "activos": {
+      "type": "object",
+      "required": ["turnaround", "escalas", "expresiones"],
+      "properties": {
+        "turnaround": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shot" },
+          "description": "Mínimo esperado: frontal, tres_cuartos_derecha, tres_cuartos_izquierda, perfil, espalda."
+        },
+        "escalas": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shot" },
+          "description": "primer_plano, plano_medio, cuerpo_entero, como mínimo."
+        },
+        "expresiones": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              { "$ref": "#/$defs/shot" },
+              {
+                "type": "object",
+                "required": ["nombre", "sostiene_identidad"],
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "sostiene_identidad": {
+                    "type": ["boolean", "null"],
+                    "description": "null solo si todavía no se generó y miró — nunca asumir true sin evidencia."
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "wardrobe": {
+      "type": "object",
+      "required": ["locks", "nota"],
+      "properties": {
+        "locks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["nombre", "descripcion", "estado"],
+            "properties": {
+              "nombre": { "type": "string" },
+              "descripcion": { "type": "string" },
+              "archivo_referencia": { "type": "string" },
+              "estado": { "enum": ["candidato", "aprobado"] }
+            }
+          }
+        },
+        "nota": {
+          "type": "string",
+          "description": "Aclarar explícitamente si hay o no un canon de marca aprobado para el vestuario."
+        }
+      }
+    },
+    "limites_conocidos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["descripcion", "tipo"],
+        "properties": {
+          "descripcion": { "type": "string" },
+          "tipo": {
+            "enum": ["entrenamiento", "prompting"],
+            "description": "entrenamiento: no se arregla mejorando el prompt, requiere ampliar el dataset y reentrenar. prompting: sí es corregible ajustando cómo se pide."
+          },
+          "evidencia": { "type": "string", "description": "Qué se probó para confirmar el límite." },
+          "mitigacion": { "type": "string" }
+        }
+      }
+    },
+    "ids_por_plataforma": {
+      "type": "object",
+      "description": "Mapeo opcional a IDs de identidad entrenados en plataformas de generación (Soul ID, etc.). Se trata como caché: puede quedar vacío o desactualizarse sin que el pack pierda validez.",
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "shot": {
+      "type": "object",
+      "required": ["archivo", "origen"],
+      "properties": {
+        "archivo": { "type": "string" },
+        "prompt": { "type": "string" },
+        "parametros": { "type": "object", "description": "Escala de LoRA, strength, look, o el parámetro equivalente del mecanismo de identidad usado." },
+        "origen": {
+          "enum": ["existente", "generado_para_este_pack"],
+          "description": "existente: se reusó una prueba previa del cliente. Nunca regenerar lo que ya sostiene identidad."
+        }
+      }
+    }
+  }
+}
