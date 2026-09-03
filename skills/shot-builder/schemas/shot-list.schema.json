@@ -91,6 +91,10 @@
           "alternativa": {
             "type": "string",
             "description": "Obligatorio si cubeta es C: cómo se resuelve este plano de otra manera."
+          },
+          "nota": {
+            "type": "string",
+            "description": "Salvedad no bloqueante sobre este plano — p. ej. que el activo_identidad elegido no cubre exactamente lo que este plano necesita. No reemplaza a 'alternativa', que es específico de cubeta C."
           }
         },
         "allOf": [
