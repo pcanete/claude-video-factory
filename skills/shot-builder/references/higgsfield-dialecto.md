@@ -43,11 +43,32 @@ Costos reales verificados (créditos, plan básico): `text2image_soul_v2` ≈ 0,
 `nano_banana_flash` ≈ 1,5 · `kling3_0` (video) ≈ 8,75. El plan básico de este workspace
 trae 150 créditos.
 
+## Video desde imagen, verificado con una corrida real (2026-09-03)
+
+`kling3_0` acepta `start_image` (ruta local, se sube sola) + `prompt` + `duration` +
+`sound` + `aspect_ratio` — exactamente el patrón keyframe-primero. Probado con la foto real
+de una expresión del `CHARACTER_PACK` de Valentina como `start_image` y un prompt pidiendo
+`slow dolly in` (push-in) más la acción del plano.
+
+**Resultado real: identidad se sostuvo con claridad y el objeto pedido (un lápiz labial)
+apareció correctamente en la mano a mitad de plano — pero el movimiento de cámara NO fue el
+push-in pedido.** Medido con `video-reference-scanner` sobre el propio resultado: dio
+`tilt_arriba`, con una nota de que "el movimiento cambia de dirección durante el plano: no
+es un movimiento único" — no un push-in limpio y monótono.
+
+**Implicación para prompts de cámara a Kling 3.0:** nombrar el movimiento
+(`slow dolly in`) no garantiza que sea el único movimiento que aparece. Probar, en la
+próxima iteración, ser más explícito negando otros ejes ("camera height stays fixed, no
+vertical drift, only a slow push in") — todavía no verificado si eso lo corrige, es la
+siguiente prueba pendiente, no una conclusión.
+
+Costo real de este test (créditos consumidos según `account status`, no la estimación de
+`generate cost`): la cuenta bajó de 150 a 142,13 tras dos imágenes (Soul 2.0 + Nano Banana 2)
+y un video de 5s en `kling3_0` — 7,87 créditos en total por los tres, bastante menos que la
+suma de las estimaciones individuales.
+
 ## Inferido (todavía no verificado con una corrida real)
 
-- Video desde imagen: el flujo esperable es generar el keyframe con un modelo de imagen
-  (arriba) y pasarlo como referencia a un modelo de video (`kling3_0`, `veo3_1`, etc.) — no
-  se corrió todavía un test de imagen-a-video real contra este pipeline.
 - Los nombres exactos de presets de cámara con los que Cinema Studio (la interfaz web)
   etiqueta sus movimientos no están confirmados — por eso el compilador de este skill sigue
   emitiendo lenguaje natural de cámara (`slow dolly in`, `pan across`) en el bloque de texto
