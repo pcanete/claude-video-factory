@@ -129,6 +129,44 @@ Un institucional de stock real usado como caso de prueba tiene pista de audio a 
 
 ---
 
+## Loudness mide el pipeline de distribución, no la pieza
+
+Verificado escaneando cuatro campañas publicitarias reales, de género, mood y editor
+distintos entre sí (una de motorsport a 52 cortes/min, una de perfume con 4 planos de 4s
+cada uno): **las cuatro miden exactamente −14,1 LUFS de loudness integrado.**
+
+Esa coincidencia no es la pieza — es Instagram normalizando el audio al servir el video.
+El loudness medido sobre material bajado de una plataforma social refleja el masterizado
+de la plataforma, no el de la mezcla original. Sirve para comparar loudness relativo entre
+piezas bajadas de la misma fuente; no sirve para inferir cómo se mezcló el original.
+
+## Cuatro casos reales de cubeta C, con evidencia
+
+`replicabilidad-generativa.md` describe las categorías; estos son ejemplos con material real
+detrás, no hipotéticos:
+
+- **Dos personas caminando sincronizadas al mismo paso** (compañeros de equipo entrando a
+  boxes, en dos piezas de una misma campaña de motorsport): coordinación física entre dos
+  cuerpos.
+- **Mano sirviendo o sosteniendo líquido en vidrio** (whisky, perfume): la física de
+  fluidos es el punto que el research marca como más duro de toda la lista, y apareció en
+  dos piezas de género distinto.
+- **Manipulación fina de un objeto chico** (mano moviendo una pieza de ajedrez).
+- **Tipografía exacta de un nombre propio sobre una silueta**: texto legible generado en
+  cuadro, con la ortografía de una persona real.
+
+## Un falso "movimiento de cámara" que resultó ser dos planos fusionados
+
+En una pieza de más de 36 cortes/min, un plano marcado `indeterminado` (confianza baja)
+resultó ser, al mirar la tira, **dos tomas completamente distintas** (un auto en pista, un
+caballo en duotono) que el detector de escenas no separó: el corte entre ambas fue más
+rápido que lo que el umbral podía resolver en ese punto. El campo `confianza` hizo lo que
+tenía que hacer — evitó reportar "movimiento de cámara" sobre algo que no era una cámara
+moviéndose. A ritmos de corte muy altos, revisar los planos `indeterminado` con la tira
+antes de descartarlos como ruido.
+
+---
+
 ## Lo que NO está calibrado
 
 Honestidad sobre el alcance:

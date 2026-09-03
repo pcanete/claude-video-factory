@@ -52,16 +52,24 @@ Lo que la generativa de 2026 sigue rompiendo. Marcarlo temprano evita la frustra
 Señales:
 
 - **acción física precisa entre dos personas** (acomodarle la gorra a alguien, pasarse un
-  objeto, un apretón de manos que se lee bien)
-- **manos manipulando objetos chicos** con continuidad
+  objeto, un apretón de manos que se lee bien, **dos personas caminando sincronizadas al
+  mismo paso**)
+- **manos manipulando objetos chicos** con continuidad (mover una pieza de ajedrez, sostener
+  algo con precisión)
 - **toma continua larga** (más de ~15s sin corte, por encima del largo nativo de los modelos)
 - **diálogo largo** con sincronía de labios sostenida y gestualidad creíble
 - **continuidad de identidad en ángulos extremos** o con oclusión fuerte del rostro
-- **texto legible generado en cuadro** que tiene que decir algo exacto
-- **física compleja**: líquidos, telas, multitudes coherentes, animales en acción
+- **texto legible generado en cuadro** que tiene que decir algo exacto, en particular un
+  **nombre propio** sobre una silueta o una superficie
+- **física compleja**: líquidos dentro de vidrio (el caso más duro de toda la lista), telas,
+  multitudes coherentes, animales en acción realista (un animal estilizado o gráfico, en
+  cambio, cae en cubeta A: ahí no compite contra la física)
 
 Se declara con: la alternativa concreta. Casi siempre hay una —cortar el plano en dos, pasar
 a inserto, resolverlo con placa tipográfica, o filmarlo— y proponerla es parte del veredicto.
+
+Los cuatro primeros de esta lista tienen evidencia real, no solo hipotética, en
+`calibracion.md` — aparecieron los cuatro en un mismo lote de cuatro campañas escaneadas.
 
 ---
 

@@ -41,6 +41,10 @@
           },
           "luz": { "type": "string" },
           "audio": { "type": "string", "description": "Qué pasa en el audio durante este plano: voz, música, silencio, golpe." },
+          "empalme_siguiente": {
+            "enum": ["corte_duro", "disolvencia", "fundido_a_negro", "flash_o_fundido_blanco"],
+            "description": "Cómo pasa este plano al siguiente. No es un detalle de posproducción: en piezas de corte muy rápido armadas con clips generados por separado, la disolvencia sistemática suele ser lo que disimula la costura entre un clip y otro, no solo una elección de estilo. Evidencia real en references/calibracion.md."
+          },
           "cubeta": {
             "enum": ["A", "B", "C"],
             "description": "A replicable con generativa, B necesita producción real, C hoy no se puede."
