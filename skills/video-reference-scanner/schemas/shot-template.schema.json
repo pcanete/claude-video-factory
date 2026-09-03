@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SHOT_TEMPLATE",
+  "description": "La estructura del video de referencia vaciada de su contenido: qué función cumple cada plano, cuánto dura, cómo se encuadra y se ilumina, sin el tema original. Es lo que consume el shot-builder para producir una pieza nueva con la misma gramática.",
+  "type": "object",
+  "required": ["contrato", "version", "derivado_de", "duracion_objetivo_s", "orientacion", "planos"],
+  "additionalProperties": false,
+  "properties": {
+    "contrato": { "const": "SHOT_TEMPLATE" },
+    "version": { "type": "string" },
+    "derivado_de": { "type": "string", "description": "Referencia de la que sale la gramática. Trazabilidad, no contenido a copiar." },
+    "duracion_objetivo_s": { "type": "number" },
+    "orientacion": { "enum": ["horizontal", "vertical", "cuadrado"] },
+    "planos": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["indice", "funcion", "duracion_s", "escala", "camara", "luz", "cubeta"],
+        "additionalProperties": false,
+        "properties": {
+          "indice": { "type": "integer" },
+          "funcion": {
+            "type": "string",
+            "description": "Qué hace este plano en la pieza: abre, presenta, contrasta, escala, remata. Nunca el contenido del original."
+          },
+          "duracion_s": { "type": "number" },
+          "escala": {
+            "enum": ["general", "entero", "medio", "primer_plano", "primerisimo", "inserto"]
+          },
+          "camara": {
+            "type": "object",
+            "required": ["movimiento"],
+            "properties": {
+              "movimiento": {
+                "enum": ["fija", "push_in", "pull_out", "paneo", "tilt", "travelling", "orbita", "handheld", "aereo", "snap_zoom"]
+              },
+              "intensidad": { "type": "string", "description": "Magnitud, no adjetivo: 'unos 45 grados', 'lento', '10% de escala'." },
+              "angulo": { "enum": ["neutro", "contrapicado", "picado", "cenital"] }
+            }
+          },
+          "luz": { "type": "string" },
+          "audio": { "type": "string", "description": "Qué pasa en el audio durante este plano: voz, música, silencio, golpe." },
+          "cubeta": {
+            "enum": ["A", "B", "C"],
+            "description": "A replicable con generativa, B necesita producción real, C hoy no se puede."
+          },
+          "alternativa": {
+            "type": "string",
+            "description": "Obligatorio si la cubeta es C: cómo resolverlo de otra manera."
+          },
+          "identidad_requerida": {
+            "type": "string",
+            "description": "Qué hace falta para sostener el personaje en este plano: nada, referencia suelta, o pack de personaje."
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "cubeta": { "const": "C" } }, "required": ["cubeta"] },
+            "then": { "required": ["alternativa"] }
+          }
+        ]
+      }
+    }
+  }
+}

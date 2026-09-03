@@ -1,0 +1,10 @@
+{
+  "name": "video-reference-scanner-skill",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Evidence-driven Agent Skill for analysing reference video: shot structure, camera motion, light, color, transitions and audio",
+  "scripts": {
+    "calibrate": "node scripts/calibrar.mjs --dir .calibration"
+  }
+}

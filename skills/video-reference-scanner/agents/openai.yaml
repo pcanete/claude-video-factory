@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Reference Scanner"
+  short_description: "Descifra ritmo, cámara, luz, color, transiciones y audio de un video de referencia"
+  default_prompt: "Usa $video-reference-scanner para analizar este video de referencia: desglosá los planos, medí el movimiento de cámara, la luz, el color, las transiciones y el audio, y dame el veredicto de qué se puede replicar con IA generativa."

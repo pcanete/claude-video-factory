@@ -1,0 +1,11 @@
+{
+  "name": "claude-video-factory",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Descifra un video de referencia y clasifica qué de él se puede reproducir con IA generativa",
+  "scripts": {
+    "check": "node scripts/check-repository.mjs",
+    "test": "node scripts/check-repository.mjs"
+  }
+}

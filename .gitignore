@@ -1,0 +1,10 @@
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Salidas de escaneo: video de referencia, frames, VIDEO_EVIDENCE.json real.
+# Nunca corresponde versionarlas — son del usuario, no del repositorio.
+.calibration/
+**/out/
+**/scan-*/

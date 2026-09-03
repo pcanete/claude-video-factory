@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VIDEO_DNA",
+  "description": "Gramática audiovisual reusable extraída de un video de referencia. Reglas ejecutables, no descripciones: cada regla tiene que poder convertirse en una instrucción para producir un plano nuevo.",
+  "type": "object",
+  "required": ["contrato", "version", "fuente", "ritmo", "escala_de_planos", "camara", "luz", "paleta", "audio", "estructura_narrativa", "replicabilidad"],
+  "additionalProperties": false,
+  "properties": {
+    "contrato": { "const": "VIDEO_DNA" },
+    "version": { "type": "string" },
+    "generado": { "type": "string" },
+    "fuente": {
+      "type": "object",
+      "required": ["entrada"],
+      "properties": {
+        "entrada": { "type": "string", "description": "URL o ruta de la referencia" },
+        "duracion_s": { "type": "number" },
+        "orientacion": { "enum": ["horizontal", "vertical", "cuadrado"] }
+      }
+    },
+    "ritmo": { "$ref": "#/$defs/regla" },
+    "escala_de_planos": { "$ref": "#/$defs/regla" },
+    "camara": { "$ref": "#/$defs/regla" },
+    "luz": { "$ref": "#/$defs/regla" },
+    "paleta": { "$ref": "#/$defs/regla" },
+    "audio": { "$ref": "#/$defs/regla" },
+    "estructura_narrativa": { "$ref": "#/$defs/regla" },
+    "accidentes": {
+      "type": "array",
+      "description": "Rasgos que aparecen una sola vez. Interesantes, pero no son gramática.",
+      "items": {
+        "type": "object",
+        "required": ["descripcion", "planos"],
+        "properties": {
+          "descripcion": { "type": "string" },
+          "planos": { "type": "array", "items": { "type": "integer" } }
+        }
+      }
+    },
+    "replicabilidad": {
+      "type": "object",
+      "required": ["cubeta_a", "cubeta_b", "cubeta_c", "veredicto"],
+      "properties": {
+        "cubeta_a": { "type": "array", "items": { "type": "integer" }, "description": "planos replicables con generativa hoy" },
+        "cubeta_b": { "type": "array", "items": { "type": "integer" }, "description": "planos que necesitan producción real o archivo" },
+        "cubeta_c": { "type": "array", "items": { "type": "integer" }, "description": "planos que hoy no se pueden generar" },
+        "veredicto": { "type": "string", "description": "Lectura de conjunto. Si más de un tercio cae en C, decir de frente que la referencia no es replicable como está y proponer la versión alcanzable." }
+      }
+    },
+    "no_determinado": {
+      "type": "array",
+      "description": "Ejes que no se pudieron establecer. Preferible a rellenarlos.",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "regla": {
+      "type": "object",
+      "required": ["regla", "evidencia"],
+      "additionalProperties": false,
+      "properties": {
+        "regla": { "type": "string", "description": "Instrucción accionable para producir un plano nuevo con esta gramática." },
+        "evidencia": { "type": "array", "items": { "type": "integer" }, "description": "Índices de plano que la sostienen." },
+        "excepciones": { "type": "string" },
+        "confianza": { "enum": ["observado", "inferido"], "description": "Nunca marcar como observado algo que se dedujo." }
+      }
+    }
+  }
+}
