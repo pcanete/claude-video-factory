@@ -53,6 +53,22 @@ resumido o aproximado produce labios desincronizados — ya documentado como hal
 research del frente. Ver `references/higgsfield-dialecto.md` sobre qué necesita
 específicamente Higgsfield Speak para esto (no es solo texto en el prompt).
 
+## Cuando dos planos comparten set: el texto tiene que ser idéntico, no solo parecido
+
+Cada plano se genera como una llamada independiente — el modelo no tiene memoria de la
+llamada anterior. Si dos planos son "el mismo living" pero uno dice *"fondo liso color rosa
+pastel"* y el otro *"fondo liso, sin elementos de marca"*, un lector humano entiende que es
+el mismo lugar; el generador no tiene motivo para producirlo igual dos veces.
+
+Encontrado en producción real (pieza de Valentina, 2026-09-03): tres planos que debían
+compartir el mismo set de camarín tenían tres redacciones de `luz`/`entorno` apenas
+distintas entre sí. Se corrigió fijando una frase canónica por set y reusándola **palabra
+por palabra** en todo plano que declare ese mismo entorno — nunca parafrasear "lo mismo pero
+con otras palabras".
+
+Regla práctica: si dos planos del `SHOT_LIST` son el mismo lugar, sus campos `entorno` y `luz`
+tienen que ser el mismo string, no dos strings parecidos.
+
 ## Ejemplo armado
 
 ```
