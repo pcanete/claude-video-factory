@@ -147,11 +147,20 @@ for (const name of skillNames) {
 
 for (const name of skillNames) {
   const calibrador = path.join(root, "skills", name, "scripts", "calibrar.mjs");
-  if (!fs.existsSync(calibrador)) continue;
+  if (fs.existsSync(calibrador)) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), `cvf-calib-${name}-`));
+    runNode(`Calibración de ${name} no dio 7/7`, [calibrador, "--dir", dir]);
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `cvf-calib-${name}-`));
-  runNode(`Calibración de ${name} no dio 7/7`, [calibrador, "--dir", dir]);
-  fs.rmSync(dir, { recursive: true, force: true });
+  // Convención paralela a calibrar.mjs para skills que no calibran umbrales
+  // sino que validan/compilan contratos: self-test.mjs corre sus propias
+  // compuertas (fixtures que deben pasar y variantes rotas que deben fallar)
+  // y sale con código 0 solo si todas se comportaron como declaran.
+  const autoprueba = path.join(root, "skills", name, "scripts", "self-test.mjs");
+  if (fs.existsSync(autoprueba)) {
+    runNode(`self-test de ${name} falló`, [autoprueba]);
+  }
 }
 
 if (failures.length) {

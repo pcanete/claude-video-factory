@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SHOT_LIST",
+  "description": "Guion de una pieza convertido en planos contractuales, listos para compilar al dialecto de una plataforma de generación. A diferencia de SHOT_TEMPLATE (vacío de contenido), acá cada plano tiene sujeto, acción y entorno reales de esta pieza.",
+  "type": "object",
+  "required": ["contrato", "version", "pieza", "destino", "planos"],
+  "additionalProperties": false,
+  "properties": {
+    "contrato": { "const": "SHOT_LIST" },
+    "version": { "type": "string" },
+    "generado": { "type": "string" },
+    "pieza": {
+      "type": "object",
+      "required": ["titulo", "duracion_objetivo_s", "orientacion"],
+      "properties": {
+        "titulo": { "type": "string" },
+        "cliente": { "type": "string" },
+        "objetivo": { "type": "string", "description": "Qué tiene que lograr la pieza, en una frase. No es el guion." },
+        "duracion_objetivo_s": { "type": "number" },
+        "orientacion": { "enum": ["horizontal", "vertical", "cuadrado"] }
+      }
+    },
+    "derivado_de_template": {
+      "type": ["string", "null"],
+      "description": "Ruta a un SHOT_TEMPLATE.json si esta pieza reusa una gramática ya escaneada. null si se escribió desde cero."
+    },
+    "personaje": {
+      "type": "object",
+      "required": ["character_pack", "nota"],
+      "properties": {
+        "character_pack": {
+          "type": ["string", "null"],
+          "description": "Ruta a un CHARACTER_PACK.json. null si la pieza no lleva un personaje con identidad a sostener."
+        },
+        "nota": { "type": "string", "description": "Si character_pack es null, decir por qué (sin personaje, personaje genérico sin pack armado, etc.). Nunca dejarlo en silencio." }
+      }
+    },
+    "destino": {
+      "type": "object",
+      "required": ["plataforma", "modo"],
+      "properties": {
+        "plataforma": { "enum": ["higgsfield"] },
+        "modo": {
+          "enum": ["paquete_para_pegar", "api"],
+          "description": "v1 del frente opera en paquete_para_pegar: el compilador arma texto e instrucciones para pegar en la UI de la plataforma, no llama a ninguna API de generación."
+        }
+      }
+    },
+    "planos": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["indice", "funcion", "sujeto", "accion", "camara", "luz", "entorno", "estilo", "duracion_s", "cubeta"],
+        "additionalProperties": false,
+        "properties": {
+          "indice": { "type": "integer" },
+          "funcion": { "type": "string", "description": "Qué hace este plano en la pieza: abre, presenta, contrasta, remata." },
+          "sujeto": { "type": "string", "description": "Quién o qué está en el cuadro. Si es el personaje del pack, nombrarlo tal como figura en personaje.nombre del CHARACTER_PACK." },
+          "accion": { "type": "string" },
+          "camara": {
+            "type": "object",
+            "required": ["movimiento"],
+            "properties": {
+              "movimiento": {
+                "enum": ["fija", "push_in", "pull_out", "paneo", "tilt", "travelling", "orbita", "handheld", "aereo", "snap_zoom"]
+              },
+              "intensidad": { "type": "string", "description": "Magnitud, no adjetivo: 'recorre 20% del cuadro', 'lento', 'unos 30 grados'." },
+              "angulo": { "enum": ["neutro", "contrapicado", "picado", "cenital"] }
+            }
+          },
+          "luz": { "type": "string" },
+          "entorno": { "type": "string" },
+          "estilo": { "type": "string", "description": "Look, lente, grano, paleta. Lo que en video-reference-scanner sale de VIDEO_DNA." },
+          "dialogo": {
+            "type": ["string", "null"],
+            "description": "Literal, entre comillas conceptualmente. Nunca parafrasear: la síntesis de labios se rompe con paráfrasis."
+          },
+          "duracion_s": { "type": "number" },
+          "empalme_siguiente": {
+            "enum": ["corte_duro", "disolvencia", "fundido_a_negro", "flash_o_fundido_blanco"]
+          },
+          "activo_identidad": {
+            "type": ["string", "null"],
+            "description": "Ruta relativa al CHARACTER_PACK del activo (turnaround/escala/expresión) que ancla la identidad en este plano. null si el plano no lleva el personaje o no hace falta anclar identidad (paisaje, producto, inserto)."
+          },
+          "cubeta": {
+            "enum": ["A", "B", "C"],
+            "description": "A replicable con generativa hoy, B necesita producción real, C hoy no se puede."
+          },
+          "alternativa": {
+            "type": "string",
+            "description": "Obligatorio si cubeta es C: cómo se resuelve este plano de otra manera."
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "cubeta": { "const": "C" } }, "required": ["cubeta"] },
+            "then": { "required": ["alternativa"] }
+          }
+        ]
+      }
+    }
+  }
+}
