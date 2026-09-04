@@ -109,6 +109,39 @@ wardrobe candidato y límites conocidos heredados del pack, tabla de planos con 
 vestuario) y una ficha por plano en `planos/` con el prompt de siete bloques listo para
 pegar, más `referencias/` con las imágenes de identidad que hacen falta subir.
 
+### 7. Generar keyframes, revisar consistencia, recién ahí animar
+
+Un campo `estado_keyframe: pendiente` en el JSON no alcanza para revisar nada — hace falta
+**verlos**, todos juntos, al lado de la referencia de identidad. Motivo: las herramientas de
+generación (Higgsfield, Magnific y en general la dirección de la industria — Google Flow
+bloquea primer y último cuadro por escena) resuelven mejor con una foto/cuadro bien elegido
+que con un catálogo de identidad entrenado; el punto donde de verdad se juega la consistencia
+es acá, no en cuánto material tenga el `CHARACTER_PACK`.
+
+```
+node scripts/armar-contact-sheet.mjs --shot-list <archivo> --keyframes-dir <carpeta> --out <contact.png>
+```
+
+Arma una grilla: la referencia del pack primero, un tile por plano con su keyframe (o el
+activo del pack si todavía no se generó uno propio) y su `estado_keyframe` rotulado encima.
+Mostrar esta imagen al usuario — es la revisión de deriva de cara/vestuario/luz entre planos,
+de un vistazo.
+
+Con la decisión tomada:
+
+```
+node scripts/marcar-keyframe.mjs --shot-list <archivo> --plano <indice> --estado aprobado|rechazado|pendiente [--nota "..."]
+```
+
+Actualiza `estado_keyframe` en el `SHOT_LIST` y deja rastro en
+`decisiones-keyframe.ndjson`, al lado del `SHOT_LIST` — quién decidió qué y cuándo, no solo
+el estado final. Un `rechazado` sin `--nota` avisa: escribir por qué evita repetir el mismo
+error al regenerar.
+
+Recién con todos los planos necesarios en `aprobado` tiene sentido compilar a video —
+`keyframe_inicial`/`keyframe_final` en cada plano pasan a ser `start_image`/`end_image` en
+`compilar-higgsfield.mjs`.
+
 ## Verificar que las compuertas funcionan
 
 ```
@@ -116,10 +149,13 @@ node scripts/self-test.mjs
 ```
 
 Arma un `CHARACTER_PACK` y un `SHOT_LIST` sintéticos y comprueba que el validador rechace lo
-que tiene que rechazar (cubeta C sin alternativa, referencia a un activo que no existe en el
-pack, referencia a una expresión marcada como que no sostiene identidad) y que el compilador
-produzca el checklist y las fichas de plano esperadas. Si esto no falla cuando debería fallar,
-las compuertas no están haciendo nada.
+que tiene que rechazar (cubeta C sin alternativa, keyframe rechazado, activo que no existe en
+el pack, expresión marcada como que no sostiene identidad, estado inválido en
+`marcar-keyframe.mjs`), que el compilador produzca el checklist y las fichas de plano
+esperadas, que `marcar-keyframe.mjs` deje rastro en el log de decisiones, y que
+`armar-contact-sheet.mjs` arme la grilla incluso con imágenes de origen distinto (el caso real
+que rompió el filtro `tile` la primera vez: referencia y keyframes con aspecto distinto). Si
+esto no falla cuando debería fallar, las compuertas no están haciendo nada.
 
 ## Frontera
 

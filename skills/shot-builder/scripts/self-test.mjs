@@ -163,6 +163,60 @@ if (!fs.existsSync(path.join(outDir, "referencias", "turnaround__frontal.jpg")))
   fail("el compilador no copió la referencia de identidad del plano 0");
 }
 
+// --- marcar-keyframe.mjs: registra la decisión y deja rastro --------------
+const marcarPath = path.join(dir, "SHOT_LIST.marcar.json");
+escribir(marcarPath, shotListValido);
+run([path.join(HERE, "marcar-keyframe.mjs"), "--shot-list", marcarPath, "--plano", "0", "--estado", "aprobado", "--nota", "fixture ok"]);
+
+const marcado = JSON.parse(fs.readFileSync(marcarPath, "utf8"));
+if (marcado.planos[0].estado_keyframe !== "aprobado") fail("marcar-keyframe no actualizó estado_keyframe en el SHOT_LIST");
+
+const logPath = path.join(dir, "decisiones-keyframe.ndjson");
+if (!fs.existsSync(logPath)) fail("marcar-keyframe no escribió el log de decisiones");
+else {
+  const entrada = JSON.parse(fs.readFileSync(logPath, "utf8").trim().split("\n").pop());
+  if (entrada.estado_nuevo !== "aprobado" || entrada.plano !== 0) fail("el log de decisiones no registró la decisión esperada");
+}
+
+run([path.join(HERE, "marcar-keyframe.mjs"), "--shot-list", marcarPath, "--plano", "0", "--estado", "algo-inventado"], { expect: "fail" });
+
+// --- armar-contact-sheet.mjs: grilla con dimensiones distintas -------------
+// El caso que rompió esto en producción real: la referencia del pack y los
+// keyframes generados tienen aspectos distintos (768x1024 vs 768x1376). Acá
+// se reproduce con dos tamaños de imagen sintética deliberadamente distintos.
+const csDir = fs.mkdtempSync(path.join(os.tmpdir(), "shot-builder-cs-"));
+const refImg = path.join(csDir, "ref.png");
+const kfImg = path.join(csDir, "kf.png");
+spawnSync("ffmpeg", ["-v", "error", "-f", "lavfi", "-i", "color=c=blue:s=100x140", "-frames:v", "1", "-y", refImg]);
+spawnSync("ffmpeg", ["-v", "error", "-f", "lavfi", "-i", "color=c=red:s=140x100", "-frames:v", "1", "-y", kfImg]);
+
+const packConImagenes = { ...pack };
+fs.mkdirSync(path.dirname(path.join(csDir, pack.activos.turnaround[0].archivo)), { recursive: true });
+fs.copyFileSync(refImg, path.join(csDir, pack.activos.turnaround[0].archivo));
+const csPackPath = path.join(csDir, "CHARACTER_PACK.json");
+escribir(csPackPath, packConImagenes);
+
+const csShotList = {
+  ...shotListValido,
+  personaje: { character_pack: "CHARACTER_PACK.json", nota: "fixture" },
+  planos: [{ ...planoBase, indice: 0, keyframe_inicial: "kf.png" }],
+};
+fs.copyFileSync(kfImg, path.join(csDir, "kf.png"));
+const csShotListPath = path.join(csDir, "SHOT_LIST.json");
+escribir(csShotListPath, csShotList);
+
+const csOut = path.join(csDir, "contact.png");
+run([path.join(HERE, "armar-contact-sheet.mjs"), "--shot-list", csShotListPath, "--out", csOut]);
+if (!fs.existsSync(csOut)) {
+  fail("armar-contact-sheet no generó el archivo de salida");
+} else {
+  const probe = spawnSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", csOut], { encoding: "utf8" });
+  const [w, h] = (probe.stdout || "").trim().split(",").map(Number);
+  // Grilla de 2 tiles en 1 fila: ancho ~2x320 + márgenes, no un solo tile de 320px.
+  if (!w || w < 600) fail(`armar-contact-sheet produjo un ancho sospechoso (${w}px) — probable regresión del bug de tile con inputs separados`);
+}
+fs.rmSync(csDir, { recursive: true, force: true });
+
 fs.rmSync(dir, { recursive: true, force: true });
 
 if (failures.length) {

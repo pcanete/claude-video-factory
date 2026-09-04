@@ -107,10 +107,27 @@ function fichaPlano(p, pack) {
   lineas.push("```");
   lineas.push("");
 
+  if (p.keyframe_inicial || p.keyframe_final) {
+    lineas.push("## Cuadros para animar (video-vendor-compiler style: start/end)");
+    lineas.push("");
+    if (p.keyframe_inicial) {
+      lineas.push(`**start_image:** \`${p.keyframe_inicial}\` — el keyframe ya aprobado de este plano, no el activo del pack.`);
+    }
+    if (p.keyframe_final) {
+      lineas.push(`**end_image:** \`${p.keyframe_final}\` — cuadro final aprobado. En Kling 3.0 pasar con \`--end-image\`. Mismo patrón que Google Flow: fijar el estado de llegada, no dejarlo librado al modelo.`);
+    }
+    lineas.push("");
+  } else if (p.activo_identidad) {
+    lineas.push("## Sin keyframe propio todavía — usando el activo del pack directo");
+    lineas.push("");
+    lineas.push(`\`${p.activo_identidad}\` se está pasando directo como start_image. Válido SOLO si el \`entorno\` de este plano coincide con el de esa foto — si no, generar primero un keyframe (ver \`references/higgsfield-dialecto.md\`) y completar \`keyframe_inicial\`.`);
+    lineas.push("");
+  }
+
   if (p.activo_identidad) {
     lineas.push("## Referencia de identidad");
     lineas.push("");
-    lineas.push(`Subir como referencia de personaje (Soul / custom reference) antes de generar:`);
+    lineas.push(`Imagen de identidad usada para generar el keyframe (o, si no hay keyframe propio, subida directo como referencia de personaje / Soul / custom reference):`);
     lineas.push(`\`${p.activo_identidad}\` (copiada en \`referencias/\` de este paquete).`);
     if (pack) {
       lineas.push("");
