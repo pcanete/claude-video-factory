@@ -78,7 +78,16 @@ compartido): o hay una decisión explícita escrita en el plano, o hay una pregu
 usuario antes de seguir. Quien pide la pieza casi nunca tiene el ojo entrenado para notar
 estas inconsistencias solo — para eso es este paso.
 
-### 4. Validar antes de compilar
+### 4. Antes de compilar al camino genérico: ¿hay un atajo?
+
+Leer `references/atajos-higgsfield.md`. Un plano de producto no siempre necesita el prompt
+genérico de siete bloques — `higgsfield-product-photoshoot` ya tiene vocabulario especializado
+para eso (verificado: evita el problema real de forma ambigua de producto que salió en la
+primera pieza). Un movimiento de cámara que el texto no describe bien tiene una alternativa
+por transferencia de movimiento (`kling3_0_motion_control`), en vez de insistir con más
+adjetivos en el prompt.
+
+### 5. Validar antes de compilar
 
 ```
 node scripts/validate-shot-list.mjs --shot-list <archivo>
@@ -89,7 +98,7 @@ pack o que el pack marca roto. Avisa sin bloquear: planos más largos que el lí
 nativo asumido (`--limite-nativo-s`, default 10), suma de duraciones lejos del objetivo
 declarado, diálogo que va a necesitar audio de referencia aparte.
 
-### 5. Compilar
+### 6. Compilar
 
 ```
 node scripts/compilar-higgsfield.mjs --shot-list <archivo> --out <directorio>
@@ -114,6 +123,12 @@ las compuertas no están haciendo nada.
 
 ## Frontera
 
-Este skill compila instrucciones. No genera nada — la generación pasa por la UI de la
-plataforma, a mano, en v1. No decide qué molde o qué personaje usar; eso lo trae quien pide
-la pieza.
+Este skill compila instrucciones — el `SHOT_LIST` y el paquete de fichas. No decide qué
+molde o qué personaje usar; eso lo trae quien pide la pieza.
+
+Sobre "cómo se genera": el modo `paquete_para_pegar` (pegar en la UI) sigue siendo válido y
+es el default declarado en el schema, pero desde que se conectó `@higgsfield/cli` con la
+cuenta real (ver `higgsfield-dialecto.md`) también se generó directo por CLI, con el mismo
+texto de prompt que arma el compilador. Las dos vías comparten el mismo `SHOT_LIST` y el
+mismo prompt de siete bloques — la diferencia es solo si alguien lo pega a mano o si un
+script lo pasa como argumento a `higgsfield generate create`.

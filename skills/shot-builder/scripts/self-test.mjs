@@ -112,6 +112,15 @@ const rutaSinVestuario = path.join(dir, "SHOT_LIST.sin-vestuario.json");
 escribir(rutaSinVestuario, shotListSinVestuario);
 run([path.join(HERE, "validate-shot-list.mjs"), "--shot-list", rutaSinVestuario], { expect: "fail" });
 
+// --- variante rota: keyframe rechazado, no debe poder compilarse a video ----
+const shotListKeyframeRechazado = {
+  ...shotListValido,
+  planos: [{ ...planoBase, estado_keyframe: "rechazado" }],
+};
+const rutaKeyframeRechazado = path.join(dir, "SHOT_LIST.keyframe-rechazado.json");
+escribir(rutaKeyframeRechazado, shotListKeyframeRechazado);
+run([path.join(HERE, "validate-shot-list.mjs"), "--shot-list", rutaKeyframeRechazado], { expect: "fail" });
+
 // --- variante rota: activo_identidad que no existe en el pack ---------------
 const shotListActivoInexistente = {
   ...shotListValido,

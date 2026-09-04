@@ -88,6 +88,10 @@
             "type": ["string", "null"],
             "description": "Ruta relativa al CHARACTER_PACK del activo (turnaround/escala/expresión) que ancla la identidad en este plano. null si el plano no lleva el personaje o no hace falta anclar identidad (paisaje, producto, inserto)."
           },
+          "estado_keyframe": {
+            "enum": ["pendiente", "aprobado", "rechazado"],
+            "description": "Puerta humana antes de animar, igual que 'candidate hasta QA' en el diseño de character-pack-builder de Codex — evidencia real detrás: 6 de 8 planos de video fallaron cuando se saltó esta aprobación. Solo aplica a planos que generan un keyframe nuevo antes de animar (no a los que ya usan una imagen del pack tal cual). El compilador rechaza compilar a video un plano con 'rechazado', y avisa si está 'pendiente'."
+          },
           "cubeta": {
             "enum": ["A", "B", "C"],
             "description": "A replicable con generativa hoy, B necesita producción real, C hoy no se puede."

@@ -144,6 +144,14 @@ function main() {
       }
     }
 
+    if (p.estado_keyframe === "rechazado") {
+      errores.push(`plano ${p.indice}: estado_keyframe es "rechazado" — no compilar a video hasta reemplazar el keyframe.`);
+    } else if (p.estado_keyframe === "pendiente") {
+      avisos.push(`plano ${p.indice}: estado_keyframe "pendiente" — mostrar el keyframe y esperar aprobación antes de animar. Evidencia real: 6 de 8 planos fallaron cuando se saltó esta puerta.`);
+    } else if (!p.estado_keyframe && p.activo_identidad && p.entorno) {
+      avisos.push(`plano ${p.indice}: no declara estado_keyframe. Si este plano necesita un keyframe nuevo (entorno distinto al de la foto de referencia), registrar la aprobación explícita antes de animar.`);
+    }
+
     if (p.dialogo && p.destino_lipsync !== false) {
       // Nota informativa, no error: el diálogo con lipsync en Higgsfield (Speak)
       // necesita un audio de referencia grabado, no genera voz desde texto.

@@ -87,6 +87,19 @@ function fichaPlano(p, pack) {
   lineas.push("");
   lineas.push(`**Duración:** ${p.duracion_s}s   **Cubeta:** ${p.cubeta}${p.cubeta === "C" ? ` — ${p.alternativa}` : ""}`);
   lineas.push("");
+
+  if (p.estado_keyframe === "rechazado") {
+    lineas.push("## ⚠ NO ANIMAR — keyframe rechazado");
+    lineas.push("");
+    lineas.push("Este plano tiene `estado_keyframe: rechazado`. Reemplazar el keyframe y volver a compilar antes de gastar en video.");
+    lineas.push("");
+  } else if (p.estado_keyframe === "pendiente") {
+    lineas.push("## Pendiente de aprobación");
+    lineas.push("");
+    lineas.push("Mostrar el keyframe generado y esperar aprobación explícita antes de animar este plano.");
+    lineas.push("");
+  }
+
   lineas.push("## Prompt (pegar en Higgsfield)");
   lineas.push("");
   lineas.push("```");
@@ -178,10 +191,11 @@ function checklist(doc, pack) {
 
   lineas.push("## Planos");
   lineas.push("");
-  lineas.push("| # | Función | Duración | Cubeta | Identidad | Vestuario | Empalme siguiente |");
-  lineas.push("|---|---|---|---|---|---|---|");
+  lineas.push("| # | Función | Duración | Cubeta | Identidad | Keyframe | Vestuario | Empalme siguiente |");
+  lineas.push("|---|---|---|---|---|---|---|---|");
   for (const p of doc.planos) {
-    lineas.push(`| ${p.indice} | ${p.funcion} | ${p.duracion_s}s | ${p.cubeta} | ${p.activo_identidad ? "sí" : "—"} | ${p.vestuario} | ${p.empalme_siguiente || "—"} |`);
+    const kf = p.estado_keyframe ? { pendiente: "⏳ pendiente", aprobado: "✓ aprobado", rechazado: "✗ rechazado" }[p.estado_keyframe] : "—";
+    lineas.push(`| ${p.indice} | ${p.funcion} | ${p.duracion_s}s | ${p.cubeta} | ${p.activo_identidad ? "sí" : "—"} | ${kf} | ${p.vestuario} | ${p.empalme_siguiente || "—"} |`);
   }
   lineas.push("");
 

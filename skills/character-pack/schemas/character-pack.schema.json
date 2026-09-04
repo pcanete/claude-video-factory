@@ -11,10 +11,18 @@
     "generado": { "type": "string" },
     "personaje": {
       "type": "object",
-      "required": ["nombre"],
+      "required": ["nombre", "naturaleza", "titularidad"],
       "properties": {
         "nombre": { "type": "string" },
-        "cliente": { "type": "string" }
+        "cliente": { "type": "string" },
+        "naturaleza": {
+          "enum": ["persona_real", "sintetico", "ficticio"],
+          "description": "Registrar ANTES de producir, no después. persona_real trae consentimiento y alcance de uso a definir con esa persona; sintetico/ficticio no."
+        },
+        "titularidad": {
+          "type": "string",
+          "description": "Quién tiene los derechos de imagen y qué autorizó, en una frase. Para persona_real: consentimiento explícito, alcance y usos permitidos. Nunca inferir autorización — si no está confirmada, decir 'pendiente de confirmar con la persona', no asumir que aplica."
+        }
       }
     },
     "mecanismo_identidad": {
@@ -91,6 +99,16 @@
           "description": "Aclarar explícitamente si hay o no un canon de marca aprobado para el vestuario."
         }
       }
+    },
+    "variacion_permitida": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Qué SÍ puede cambiar legítimamente entre generaciones sin que sea una falla de identidad: luz, ángulo leve, micro-expresión, grano. Opcional pero recomendado — separa 'esto varió a propósito' de 'esto se rompió', que hoy quedaba mezclado en limites_conocidos."
+    },
+    "deriva_prohibida": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Qué NUNCA puede cambiar: estructura facial, marcas de identidad, proporciones. Si un resultado generado difiere acá, no es una variación aceptable — es identidad rota, sin importar cuán bien se vea la imagen."
     },
     "limites_conocidos": {
       "type": "array",

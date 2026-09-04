@@ -47,8 +47,13 @@ de ángulos, escenas, o comparativas de realismo antes de gastar en generación 
 
 ## El contrato: `CHARACTER_PACK.json`
 
-Schema en `schemas/character-pack.schema.json`. Cuatro bloques:
+Schema en `schemas/character-pack.schema.json`. Seis bloques:
 
+0. **`personaje.naturaleza` + `personaje.titularidad`** — obligatorio, y se declara **antes**
+   de producir, no después. `naturaleza` distingue `persona_real` de `sintetico`/`ficticio`;
+   si es una persona real, `titularidad` tiene que decir qué consintió y para qué alcance —
+   nunca inferir autorización. El validador rechaza un pack de `persona_real` con
+   titularidad vacía o "pendiente".
 1. **`mecanismo_identidad`** — cómo se sostiene la cara/cuerpo entre generaciones (LoRA propio,
    Soul ID de vendor, referencia suelta, entrenamiento custom), y su portabilidad.
 2. **`activos`** — turnaround (mínimo: frontal, tres cuartos ambos lados, perfil, espalda),
@@ -56,7 +61,11 @@ Schema en `schemas/character-pack.schema.json`. Cuatro bloques:
    el prompt exacto que la produjo y de dónde salió (existente vs. generada para este pack).
 3. **`wardrobe`** — looks candidatos, nunca aprobados por el agente. `estado` distingue
    `candidato` de `aprobado`; solo el cliente cambia un candidato a aprobado.
-4. **`limites_conocidos`** — huecos de cobertura del dataset o del mecanismo de identidad,
+4. **`variacion_permitida` / `deriva_prohibida`** — opcionales pero recomendados. Separan
+   explícitamente "esto puede cambiar entre generaciones sin que sea una falla" (luz, ángulo
+   leve) de "esto no puede cambiar nunca" (estructura facial, marcas de identidad). Antes esta
+   distinción vivía disuelta en `limites_conocidos`; ahora tiene su propio lugar.
+5. **`limites_conocidos`** — huecos de cobertura del dataset o del mecanismo de identidad,
    con su tipo (`entrenamiento`: no se arregla con mejor prompt; `prompting`: sí se puede
    mejorar) y qué se probó para confirmarlo.
 
@@ -64,23 +73,39 @@ Nunca declarar `sostiene_identidad` en una expresión sin haberla generado y mir
 de entrenamiento no se prueba "mejorando el prompt" — eso ya se probó y no funciona; se
 registra como límite y punto.
 
+Validar con:
+
+```
+node scripts/validate.mjs --pack <archivo>
+```
+
+Verificar que las compuertas funcionan (fixture sintético válido pasa, variantes rotas —en
+particular persona real sin titularidad confirmada— fallan):
+
+```
+node scripts/self-test.mjs
+```
+
 ## Procedimiento
 
 1. **Inventariar.** `references/inventario-antes-de-generar.md`.
-2. **Declarar el mecanismo de identidad** — de dónde sale la cara, qué tan portable es.
-3. **Completar el turnaround y las escalas** que falten, con el motor de generación que ese
+2. **Registrar `naturaleza` y `titularidad` antes de generar nada.** Si es una persona real y
+   la titularidad no está confirmada, no seguir — decirlo y preguntar, no asumir.
+3. **Declarar el mecanismo de identidad** — de dónde sale la cara, qué tan portable es.
+4. **Completar el turnaround y las escalas** que falten, con el motor de generación que ese
    proyecto ya tenga validado (no se reinventa la plomería de generación acá: si el cliente
    ya tiene un pipeline probado —trigger word, pesos por escala, bloque de realismo—, se usa
    tal cual, no se improvisa uno nuevo).
-4. **Probar expresiones**, no asumirlas. Generar, mirar, y recién ahí escribir
+5. **Probar expresiones**, no asumirlas. Generar, mirar, y recién ahí escribir
    `sostiene_identidad: true` o `false`. Un `false` con evidencia vale más que evitar la
    pregunta.
-5. **Registrar wardrobe como candidato.** Nunca aprobarlo por cuenta propia.
-6. **Escribir `limites_conocidos`** con lo que ya se sabía (huecos de entrenamiento) y lo que
-   se descubrió al probar expresiones nuevas.
-7. **Costo:** antes de generar un lote, decir el costo total estimado. Cada llamada individual
+6. **Registrar wardrobe como candidato.** Nunca aprobarlo por cuenta propia.
+7. **Escribir `variacion_permitida`/`deriva_prohibida` y `limites_conocidos`** con lo que ya
+   se sabía (huecos de entrenamiento) y lo que se descubrió al probar expresiones nuevas.
+8. **Costo:** antes de generar un lote, decir el costo total estimado. Cada llamada individual
    de generación de imagen es barata (centavos de dólar); igual se avisa el total antes de
    correr el lote, no después.
+9. **Validar** con `scripts/validate.mjs` antes de entregar el pack a `shot-builder`.
 
 ## Frontera
 
