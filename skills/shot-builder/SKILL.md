@@ -11,7 +11,7 @@ description: >
   editor de material propio, fuera de este repositorio).
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Shot Builder — de guion a paquete listo para generar
@@ -78,6 +78,13 @@ compartido): o hay una decisión explícita escrita en el plano, o hay una pregu
 usuario antes de seguir. Quien pide la pieza casi nunca tiene el ojo entrenado para notar
 estas inconsistencias solo — para eso es este paso.
 
+Para un objeto o estado cuya continuidad de verdad importa (no todos), el campo opcional
+`continuidad` de cada plano (`entra`/`sale`/`saltos_declarados`) convierte esta lectura en
+algo que `validate-shot-list.mjs` puede bloquear en vez de confiar en que el agente se
+acuerde: una diferencia de estado entre el `sale` de un plano y el `entra` del siguiente que
+no está en `saltos_declarados` es un error de continuidad, no una decisión. Ver la sección
+nueva de `lectura-de-director.md`.
+
 ### 4. Antes de compilar al camino genérico: ¿hay un atajo?
 
 Leer `references/atajos-higgsfield.md`. Un plano de producto no siempre necesita el prompt
@@ -94,15 +101,20 @@ node scripts/validate-shot-list.mjs --shot-list <archivo>
 ```
 
 Bloquea: schema inválido, cubeta C sin alternativa, `activo_identidad` que no existe en el
-pack o que el pack marca roto. Avisa sin bloquear: planos más largos que el límite de clip
+pack o que el pack marca roto, keyframe `rechazado`, y **salto de continuidad no declarado**
+entre planos consecutivos. Avisa sin bloquear: planos más largos que el límite de clip
 nativo asumido (`--limite-nativo-s`, default 10), suma de duraciones lejos del objetivo
-declarado, diálogo que va a necesitar audio de referencia aparte.
+declarado, diálogo que va a necesitar audio de referencia aparte, keyframe `pendiente`.
 
 ### 6. Compilar
 
 ```
-node scripts/compilar-higgsfield.mjs --shot-list <archivo> --out <directorio>
+node scripts/compilar-higgsfield.mjs --shot-list <archivo> --out <directorio> [--modelo "..."] [--canal "..."]
 ```
+
+`--modelo`/`--canal` describen el contexto con el que se está compilando ahora. Si un plano
+tiene el keyframe `aprobado` bajo un `contexto_aprobacion` distinto, su ficha lo dice en vez
+de dejar pasar una aprobación que nunca cubrió ese modelo.
 
 Produce `00-checklist.md` (resumen de la pieza, cubetas B/C a resolver antes de producir,
 wardrobe candidato y límites conocidos heredados del pack, tabla de planos con su columna de
@@ -130,13 +142,20 @@ de un vistazo.
 Con la decisión tomada:
 
 ```
-node scripts/marcar-keyframe.mjs --shot-list <archivo> --plano <indice> --estado aprobado|rechazado|pendiente [--nota "..."]
+node scripts/marcar-keyframe.mjs --shot-list <archivo> --plano <indice> --estado aprobado|rechazado|pendiente [--nota "..."] [--proveedor "..."] [--modelo "..."] [--canal "..."] [--revision-pack "..."]
 ```
 
 Actualiza `estado_keyframe` en el `SHOT_LIST` y deja rastro en
 `decisiones-keyframe.ndjson`, al lado del `SHOT_LIST` — quién decidió qué y cuándo, no solo
 el estado final. Un `rechazado` sin `--nota` avisa: escribir por qué evita repetir el mismo
 error al regenerar.
+
+**Una aprobación vale para el contexto en que se hizo, no para siempre.** Al aprobar, las
+banderas de contexto registran `contexto_aprobacion` (proveedor, modelo, canal, revisión del
+pack); lo que no se pasa queda como `not_recorded`, nunca inventado. Después, compilar con
+`--modelo`/`--canal` distintos hace que la ficha del plano avise que esa aprobación no cubre
+este contexto. Sin esto, un keyframe aprobado con un modelo se reusaba con cualquier otro sin
+que nada lo señalara.
 
 Recién con todos los planos necesarios en `aprobado` tiene sentido compilar a video —
 `keyframe_inicial`/`keyframe_final` en cada plano pasan a ser `start_image`/`end_image` en
@@ -151,11 +170,14 @@ node scripts/self-test.mjs
 Arma un `CHARACTER_PACK` y un `SHOT_LIST` sintéticos y comprueba que el validador rechace lo
 que tiene que rechazar (cubeta C sin alternativa, keyframe rechazado, activo que no existe en
 el pack, expresión marcada como que no sostiene identidad, estado inválido en
-`marcar-keyframe.mjs`), que el compilador produzca el checklist y las fichas de plano
-esperadas, que `marcar-keyframe.mjs` deje rastro en el log de decisiones, y que
-`armar-contact-sheet.mjs` arme la grilla incluso con imágenes de origen distinto (el caso real
-que rompió el filtro `tile` la primera vez: referencia y keyframes con aspecto distinto). Si
-esto no falla cuando debería fallar, las compuertas no están haciendo nada.
+`marcar-keyframe.mjs`, **salto de continuidad no declarado**) y que acepte lo que sí es una
+decisión (**la misma discontinuidad, declarada como elipsis**), que el compilador produzca el
+checklist y las fichas de plano esperadas, que `marcar-keyframe.mjs` deje rastro en el log de
+decisiones **y registre el contexto de aprobación**, que **compilar con un modelo distinto al
+aprobado avise y con el mismo no**, y que `armar-contact-sheet.mjs` arme la grilla incluso con
+imágenes de origen distinto (el caso real que rompió el filtro `tile` la primera vez:
+referencia y keyframes con aspecto distinto). Si esto no falla cuando debería fallar, las
+compuertas no están haciendo nada.
 
 ## Frontera
 

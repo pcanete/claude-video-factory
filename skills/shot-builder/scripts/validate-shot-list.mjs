@@ -179,6 +179,45 @@ function main() {
     }
   }
 
+  // Continuidad entre planos consecutivos: una diferencia de estado en la
+  // misma entidad entre el "sale" de un plano y el "entra" del siguiente
+  // tiene que estar en saltos_declarados, o es indistinguible de un error.
+  // Adaptado de sequence-continuity-builder (edición Codex, cruce 2026-09-04) —
+  // ahí es obligatorio para toda entidad visible en cada beat; acá solo se
+  // evalúa para las entidades que alguien decidió trackear con "continuidad".
+  for (let i = 0; i < doc.planos.length - 1; i++) {
+    const actual = doc.planos[i];
+    const siguiente = doc.planos[i + 1];
+    const sale = actual.continuidad?.sale || {};
+    const entra = siguiente.continuidad?.entra || {};
+    const declarados = new Set((siguiente.continuidad?.saltos_declarados || []).map((s) => s.entidad));
+    for (const [entidad, valorSale] of Object.entries(sale)) {
+      if (!(entidad in entra)) continue;
+      const valorEntra = entra[entidad];
+      if (valorSale !== valorEntra && !declarados.has(entidad)) {
+        errores.push(
+          `plano ${actual.indice} → ${siguiente.indice}: "${entidad}" pasa de "${valorSale}" a "${valorEntra}" sin salto declarado. ` +
+          `Si es una elipsis de guion, agregar {entidad: "${entidad}", motivo: "..."} a continuidad.saltos_declarados del plano ${siguiente.indice}; si no, es una deriva de continuidad a corregir.`
+        );
+      }
+    }
+  }
+
+  // Una aprobación de keyframe registrada bajo un contexto (modelo/canal)
+  // queda muda para cualquier otro: avisar cuando el plano ya declara
+  // contexto_aprobacion y compilar-higgsfield todavía no confirmó que el
+  // contexto actual coincide (eso lo resuelve compilar-higgsfield.mjs con
+  // --modelo/--canal; acá solo se avisa si el campo quedó a medio llenar).
+  for (const p of doc.planos) {
+    const ca = p.contexto_aprobacion;
+    if (p.estado_keyframe === "aprobado" && ca) {
+      const sinRegistrar = Object.entries(ca).filter(([, v]) => !v || v === "not_recorded").map(([k]) => k);
+      if (sinRegistrar.length === Object.keys(ca).length && sinRegistrar.length > 0) {
+        avisos.push(`plano ${p.indice}: contexto_aprobacion está declarado pero sin ningún valor registrado (todo "not_recorded") — no sirve para detectar un cambio de contexto.`);
+      }
+    }
+  }
+
   const objetivo = doc.pieza.duracion_objetivo_s;
   if (Math.abs(sumaDuracion - objetivo) > objetivo * 0.15) {
     avisos.push(`la suma de planos (${sumaDuracion.toFixed(1)}s) se aleja más de 15% del objetivo declarado (${objetivo}s).`);

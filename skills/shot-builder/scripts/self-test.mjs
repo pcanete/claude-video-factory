@@ -139,6 +139,37 @@ const rutaExpresionRota = path.join(dir, "SHOT_LIST.expresion-rota.json");
 escribir(rutaExpresionRota, shotListExpresionRota);
 run([path.join(HERE, "validate-shot-list.mjs"), "--shot-list", rutaExpresionRota], { expect: "fail" });
 
+// --- continuidad: salto de estado no declarado entre planos consecutivos ---
+// Adaptado de sequence-continuity-builder (edición Codex, cruce 2026-09-04):
+// el "sale" de un plano y el "entra" del siguiente no pueden diferir para la
+// misma entidad sin un salto declarado — si no, es indistinguible de un
+// error de continuidad.
+const shotListSaltoNoDeclarado = {
+  ...shotListValido,
+  planos: [
+    { ...planoBase, indice: 0, continuidad: { sale: { cuaderno: "cerrado" } } },
+    { ...planoBase, indice: 1, activo_identidad: null, continuidad: { entra: { cuaderno: "abierto" } } },
+  ],
+};
+const rutaSaltoNoDeclarado = path.join(dir, "SHOT_LIST.salto-no-declarado.json");
+escribir(rutaSaltoNoDeclarado, shotListSaltoNoDeclarado);
+run([path.join(HERE, "validate-shot-list.mjs"), "--shot-list", rutaSaltoNoDeclarado], { expect: "fail" });
+
+// --- misma discontinuidad, pero declarada como elipsis: tiene que pasar ----
+const shotListSaltoDeclarado = {
+  ...shotListValido,
+  planos: [
+    { ...planoBase, indice: 0, continuidad: { sale: { cuaderno: "cerrado" } } },
+    {
+      ...planoBase, indice: 1, activo_identidad: null,
+      continuidad: { entra: { cuaderno: "abierto" }, saltos_declarados: [{ entidad: "cuaderno", motivo: "elipsis de guion" }] },
+    },
+  ],
+};
+const rutaSaltoDeclarado = path.join(dir, "SHOT_LIST.salto-declarado.json");
+escribir(rutaSaltoDeclarado, shotListSaltoDeclarado);
+run([path.join(HERE, "validate-shot-list.mjs"), "--shot-list", rutaSaltoDeclarado]);
+
 // --- compilar el válido y verificar la salida -------------------------------
 const outDir = path.join(dir, "paquete");
 run([path.join(HERE, "compilar-higgsfield.mjs"), "--shot-list", shotListValidoPath, "--out", outDir]);
@@ -179,6 +210,40 @@ else {
 }
 
 run([path.join(HERE, "marcar-keyframe.mjs"), "--shot-list", marcarPath, "--plano", "0", "--estado", "algo-inventado"], { expect: "fail" });
+
+// --- contexto_aprobacion: una aprobación queda atada al contexto en que se dio ---
+// Adaptado de consistency-test-builder (edición Codex, cruce 2026-09-04):
+// canReuseConsistencyTest invalida la reutilización si cambia modelo/canal.
+// Acá se prueba el mismo principio sobre el campo que ya teníamos
+// (estado_keyframe) en vez de un contrato nuevo.
+const contextoPath = path.join(dir, "SHOT_LIST.contexto.json");
+escribir(contextoPath, shotListValido);
+run([
+  path.join(HERE, "marcar-keyframe.mjs"), "--shot-list", contextoPath, "--plano", "0", "--estado", "aprobado",
+  "--proveedor", "higgsfield", "--modelo", "kling3_0", "--canal", "cli", "--revision-pack", "r1",
+]);
+const conContexto = JSON.parse(fs.readFileSync(contextoPath, "utf8"));
+const ca = conContexto.planos[0].contexto_aprobacion;
+if (!ca || ca.modelo !== "kling3_0" || ca.canal !== "cli") fail("marcar-keyframe no registró contexto_aprobacion como se pidió");
+
+const logContexto = JSON.parse(fs.readFileSync(path.join(dir, "decisiones-keyframe.ndjson"), "utf8").trim().split("\n").pop());
+if (!logContexto.contexto_aprobacion || logContexto.contexto_aprobacion.modelo !== "kling3_0") {
+  fail("el log de decisiones no registró contexto_aprobacion junto con la decisión");
+}
+
+// Compilar con el MISMO contexto: no debe avisar nada.
+const outMismoContexto = path.join(dir, "paquete-mismo-contexto");
+run([path.join(HERE, "compilar-higgsfield.mjs"), "--shot-list", contextoPath, "--out", outMismoContexto, "--modelo", "kling3_0", "--canal", "cli"]);
+const fichaMismoContexto = fs.readFileSync(path.join(outMismoContexto, "planos", "plano-00.md"), "utf8");
+if (fichaMismoContexto.includes("fuera de contexto")) fail("compilar-higgsfield avisó de contexto distinto cuando el contexto coincide");
+
+// Compilar con OTRO modelo: tiene que avisar que la aprobación no cubre este contexto.
+const outOtroContexto = path.join(dir, "paquete-otro-contexto");
+run([path.join(HERE, "compilar-higgsfield.mjs"), "--shot-list", contextoPath, "--out", outOtroContexto, "--modelo", "seedance2_0", "--canal", "cli"]);
+const fichaOtroContexto = fs.readFileSync(path.join(outOtroContexto, "planos", "plano-00.md"), "utf8");
+if (!fichaOtroContexto.includes("Aprobación fuera de contexto")) {
+  fail("compilar-higgsfield no avisó al compilar con un modelo distinto al que se aprobó el keyframe");
+}
 
 // --- armar-contact-sheet.mjs: grilla con dimensiones distintas -------------
 // El caso que rompió esto en producción real: la referencia del pack y los

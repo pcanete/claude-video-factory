@@ -61,6 +61,23 @@ Ya resuelto y en el schema desde antes: texto literal idéntico entre planos del
 Se menciona acá porque es el primer caso donde se detectó este patrón — los demás ejes son
 la misma lección aplicada a otras variables.
 
+### Cuándo pasar de checklist a contrato validable
+
+Todo lo de arriba depende de que el agente se acuerde de recorrer la lista. Para un prop u
+objeto cuyo estado cambia dentro de la pieza (un cuaderno que se abre, una tapa que se saca),
+eso no alcanza — un olvido no avisa. El campo opcional `continuidad` en cada plano
+(`{ entra, sale, saltos_declarados }`) hace la misma pregunta pero de forma que
+`validate-shot-list.mjs` la puede bloquear: si el `sale` de un plano y el `entra` del
+siguiente declaran un valor distinto para la misma entidad, hace falta un salto declarado en
+`saltos_declarados` con su motivo (una elipsis de guion) — si no, el validador lo rechaza como
+deriva de continuidad, no como decisión.
+
+No es obligatorio en todos los planos ni para toda entidad visible — eso sería una segunda
+`SHOT_LIST` completa. Usarlo solo para las entidades cuyo estado de verdad importa sostener
+(el objeto que protagoniza la acción, no el color del cielo de fondo). Idea adaptada de
+`sequence-continuity-builder` de la edición Codex del frente (cruce 2026-09-04), acotada a
+propósito para no convertir esta lectura en trabajo duplicado.
+
 ## Cuándo preguntar en vez de decidir
 
 Si al recorrer la lista de arriba alguno de estos ejes no tiene una respuesta clara **y**

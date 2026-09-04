@@ -100,6 +100,42 @@
             "enum": ["pendiente", "aprobado", "rechazado"],
             "description": "Puerta humana antes de animar, igual que 'candidate hasta QA' en el diseño de character-pack-builder de Codex — evidencia real detrás: 6 de 8 planos de video fallaron cuando se saltó esta aprobación. Cubre tanto keyframe_inicial como keyframe_final cuando ambos existen — se revisan y aprueban juntos, no por separado. El compilador rechaza compilar a video un plano con 'rechazado', y avisa si está 'pendiente'."
           },
+          "contexto_aprobacion": {
+            "type": "object",
+            "description": "Contexto exacto bajo el que se aprobó este keyframe — proveedor, modelo, canal y revisión del CHARACTER_PACK vigente en ese momento. Lo escribe marcar-keyframe.mjs al aprobar. Sin esto, una aprobación vale para cualquier contexto para siempre, que es exactamente el problema que evita canReuseConsistencyTest en consistency-test-builder de la edición Codex (cruce 2026-09-04): ahí una aprobación deja de servir en cuanto cambia modelo/canal/revisión. Acá se llevó esa misma idea al campo que ya existía (estado_keyframe) en vez de crear un contrato nuevo — el sistema se mantiene chico. Un campo sin valor real usa el literal 'not_recorded', nunca se inventa.",
+            "properties": {
+              "proveedor": { "type": "string" },
+              "modelo": { "type": "string" },
+              "canal": { "type": "string" },
+              "revision_character_pack": { "type": "string" }
+            }
+          },
+          "continuidad": {
+            "type": "object",
+            "description": "Estado de entidades (personaje, prop, entorno) que entran y salen de este plano, para detectar una deriva no declarada entre el final de un plano y el inicio del siguiente. Adaptado de sequence-continuity-builder de la edición Codex (cruce 2026-09-04), acotado a propósito: ahí es obligatorio declarar el estado de TODA entidad visible en TODO beat; acá es opcional plano por plano — se usa solo para las entidades cuya continuidad realmente importa sostener, para no convertir 'lectura de director' en una segunda carga de trabajo completa.",
+            "properties": {
+              "entra": {
+                "type": "object",
+                "description": "Estado de cada entidad al empezar este plano. Clave: nombre de la entidad (ej. 'cuaderno', 'campera'). Valor: estado observable y concreto ('cerrado', 'puesta') — no una emoción abstracta que no se pueda verificar en el frame."
+              },
+              "sale": {
+                "type": "object",
+                "description": "Estado de cada entidad al terminar este plano, mismas claves que 'entra' cuando corresponde."
+              },
+              "saltos_declarados": {
+                "type": "array",
+                "description": "Discontinuidades intencionales entre el 'sale' de ESTE plano y el 'entra' del plano siguiente — una elipsis de guion, no un error. El validador bloquea cualquier diferencia de estado en una misma entidad entre planos consecutivos que no esté declarada acá.",
+                "items": {
+                  "type": "object",
+                  "required": ["entidad", "motivo"],
+                  "properties": {
+                    "entidad": { "type": "string" },
+                    "motivo": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
           "cubeta": {
             "enum": ["A", "B", "C"],
             "description": "A replicable con generativa hoy, B necesita producción real, C hoy no se puede."

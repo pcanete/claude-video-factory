@@ -7,7 +7,13 @@
 // Cuando exista un segundo destino (Veo, Kling), va otro compilador aparte —
 // este archivo solo sabe hablar el dialecto de Higgsfield.
 //
-// uso: node compilar-higgsfield.mjs --shot-list <archivo> --out <directorio>
+// --modelo/--canal describen el contexto con el que se está compilando AHORA.
+// Si un plano tiene estado_keyframe:aprobado con un contexto_aprobacion
+// distinto, la ficha avisa — adaptado de consistency-test-builder de la
+// edición Codex (cruce 2026-09-04): una aprobación no cubre un contexto que
+// no probó.
+//
+// uso: node compilar-higgsfield.mjs --shot-list <archivo> --out <directorio> [--modelo "..."] [--canal "..."]
 
 import fs from "node:fs";
 import path from "node:path";
@@ -18,7 +24,12 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 function args() {
   const a = process.argv.slice(2);
   const get = (n, def) => { const i = a.indexOf(`--${n}`); return i >= 0 && a[i + 1] ? a[i + 1] : def; };
-  return { shotList: get("shot-list", null), out: get("out", null) };
+  return {
+    shotList: get("shot-list", null),
+    out: get("out", null),
+    modelo: get("modelo", null),
+    canal: get("canal", null),
+  };
 }
 
 function leerJson(p) { return JSON.parse(fs.readFileSync(p, "utf8")); }
@@ -81,7 +92,7 @@ function armarPrompt(p) {
   return bloques.join("\n");
 }
 
-function fichaPlano(p, pack) {
+function fichaPlano(p, pack, contextoActual) {
   const lineas = [];
   lineas.push(`# Plano ${String(p.indice).padStart(2, "0")} — ${p.funcion}`);
   lineas.push("");
@@ -98,6 +109,19 @@ function fichaPlano(p, pack) {
     lineas.push("");
     lineas.push("Mostrar el keyframe generado y esperar aprobación explícita antes de animar este plano.");
     lineas.push("");
+  } else if (p.estado_keyframe === "aprobado" && p.contexto_aprobacion) {
+    const ca = p.contexto_aprobacion;
+    const distinto = (campo, actual) => actual && ca[campo] && ca[campo] !== "not_recorded" && ca[campo] !== actual;
+    if (distinto("modelo", contextoActual.modelo) || distinto("canal", contextoActual.canal)) {
+      lineas.push("## ⚠ Aprobación fuera de contexto");
+      lineas.push("");
+      lineas.push(
+        `Este keyframe se aprobó con modelo="${ca.modelo}" canal="${ca.canal}". Se está compilando ahora con ` +
+        `modelo="${contextoActual.modelo || "?"}" canal="${contextoActual.canal || "?"}". La aprobación no cubre este ` +
+        `contexto — revisar el keyframe de nuevo antes de animar, no asumir que sigue valiendo.`
+      );
+      lineas.push("");
+    }
   }
 
   lineas.push("## Prompt (pegar en Higgsfield)");
@@ -220,11 +244,12 @@ function checklist(doc, pack) {
 }
 
 function main() {
-  const { shotList, out } = args();
+  const { shotList, out, modelo, canal } = args();
   if (!shotList || !out) {
-    console.error("uso: node compilar-higgsfield.mjs --shot-list <archivo> --out <directorio>");
+    console.error("uso: node compilar-higgsfield.mjs --shot-list <archivo> --out <directorio> [--modelo \"...\"] [--canal \"...\"]");
     process.exit(2);
   }
+  const contextoActual = { modelo, canal };
 
   const doc = leerJson(shotList);
   if (doc.contrato !== "SHOT_LIST") {
@@ -254,7 +279,7 @@ function main() {
 
   for (const p of doc.planos) {
     const nombre = `plano-${String(p.indice).padStart(2, "0")}.md`;
-    fs.writeFileSync(path.join(planosDir, nombre), fichaPlano(p, pack), "utf8");
+    fs.writeFileSync(path.join(planosDir, nombre), fichaPlano(p, pack, contextoActual), "utf8");
 
     if (p.activo_identidad && pack) {
       const packDir = path.dirname(path.isAbsolute(doc.personaje.character_pack)
