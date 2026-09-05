@@ -107,6 +107,12 @@ Dos trampas conocidas, las dos verificadas contra material real:
 - **`cruce_imagen_audio`**: el audio ve estructura que la imagen no ve. Si aparecen
   `limites_que_solo_ve_el_audio`, el desglose visual está incompleto. En la prueba de
   referencia la imagen encontró 3 de 5 cortes reales y los silencios marcaban los 5.
+- **`posible_subsegmentacion`**: picos que quedaron apenas debajo del umbral sin corte
+  asignado. En montaje rápido de material homogéneo —agua, piel, una sola paleta— un corte
+  real puede no llegar nunca al umbral, y la pieza se lee con menos planos y más lentos de
+  los que tiene. **No bajar el umbral a ojo:** está calibrado. Ir a mirar esos timecodes con
+  el paso 3. Verificado contra una campaña deportiva real donde el aviso marcó tres cortes
+  que la detección se había comido, los tres confirmados por frames.
 
 No dar el desglose por cerrado hasta haber mirado esto.
 
@@ -117,6 +123,19 @@ No dar el desglose por cerrado hasta haber mirado esto.
   mueve, es **cámara fija con acción interna**, no un travelling. Esa distinción cambia el
   prompt entero.
 - Frames sueltos en `frames/` cuando haga falta detalle.
+
+**Para leer contenido, no alcanza con un frame por plano.** Vestuario, props, texto en
+pantalla, marcas y acción no se leen de la hoja de contacto:
+
+```
+node scripts/escanear-contenido.mjs --video <archivo> --evidencia <VIDEO_EVIDENCE.json> --out <directorio>
+```
+
+Deja una tira por plano en `contenido/` (2 a 5 frames según duración, a 720px) y declara en
+`COBERTURA_CONTENIDO.json` qué se extrajo. **Esta pasada no filtra nada a propósito: primero
+se lee todo lo que la técnica permite ver, y recién después se decide qué se mantiene, qué se
+cambia y qué se descarta.** Decidir antes de mirar es decidir a ciegas — y en la práctica el
+paso denso es el que expone lo que el conteo de planos se comió.
 
 ### 3 bis. Leer las mediciones con su confianza
 

@@ -239,6 +239,35 @@ modos:
     log(`  AVISO: un solo plano en ${ficha.duracion_s}s. Probá --umbral ${diagnostico.umbral_sugerido}`);
   }
 
+  // Picos que quedaron apenas debajo del umbral y no coinciden con ningún
+  // corte ya detectado. En montaje rápido de material visualmente homogéneo
+  // —agua, piel, una sola paleta— un corte real puede no llegar nunca al
+  // umbral, y la pieza se lee con menos planos y más lentos de los que tiene.
+  //
+  // No se baja el umbral: está calibrado y bajarlo a ojo rompe los casos que
+  // hoy funcionan. Se declara la duda con timecodes concretos para ir a
+  // mirarlos. Verificado contra material real: en una campaña deportiva de
+  // 23,75s este aviso marcó t=2.97 y t=13.00, y los frames a ambos lados
+  // confirmaron que eran cortes que la detección se había comido.
+  const BANDA_BAJA = 0.6;
+  const sospechosos = scores
+    .filter((s) => s.score > umbral * BANDA_BAJA && s.score <= umbral)
+    .filter((s) => !cortes.some((c) => Math.abs(c - s.t) < 0.4))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 12)
+    .map((s) => ({ t: s.t, score: Number(s.score.toFixed(4)) }))
+    .sort((a, b) => a.t - b.t);
+
+  if (sospechosos.length >= 3) {
+    diagnostico.posible_subsegmentacion = {
+      picos_bajo_umbral: sospechosos,
+      lectura: `${sospechosos.length} picos entre ${(umbral * BANDA_BAJA).toFixed(2)} y ${umbral} sin corte asignado. ` +
+        `La estructura de planos puede estar sub-segmentada: extraer frames a ambos lados de esos timecodes ` +
+        `(escanear-contenido.mjs) antes de dar por buenos el conteo de planos, la duración media y los cortes por minuto.`,
+    };
+    log(`  AVISO: ${sospechosos.length} picos bajo umbral sin corte asignado — posible sub-segmentación`);
+  }
+
   // --- fotografía por plano ------------------------------------------------
   let serieLuma = [];
   if (modo.fotografia) {
