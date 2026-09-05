@@ -148,6 +148,31 @@ resolver mirando la tira. Ver `references/calibracion.md`.
 Seguir `references/sintesis.md`. Ejes obligatorios: ritmo, escala de planos, cámara, luz,
 paleta, audio, estructura narrativa.
 
+### 4 bis. Escribir el sistema, no solo el inventario
+
+**Un desglose de planos se puede cumplir ítem por ítem y dar una pieza que no se parece al
+original.** Lo que sostiene una pieza casi nunca vive en un plano: vive en las reglas que
+todos los planos obedecen —y que por obedecerlas todos, ninguno declara— y sobre todo en lo
+que la pieza sistemáticamente se niega a hacer, que un inventario no puede registrar porque
+solo lista lo que está.
+
+Escribir `SISTEMA_DE_PIEZA.json` (`schemas/sistema-de-pieza.schema.json`) siguiendo el método
+de `references/sistema-de-pieza.md`: principio organizador, reglas, prohibiciones, carga de
+identidad y portabilidad a otro sujeto.
+
+```
+node scripts/validate-sistema.mjs --sistema <archivo>
+```
+
+Bloquea: reglas o prohibiciones sin evidencia (una regla sin timecodes es una opinión),
+cambios deliberados sobre reglas que no existen, y romper una regla `carga_identidad: true`
+sin declarar qué se gana. Avisa: sistema sin prohibiciones, sistema sin nada portable,
+lectura parcial.
+
+**Este es el paso que permite construir una pieza distinta —otro personaje, otro entorno,
+otro objeto— sin que quede a medias.** El desglose de planos sirve para replicar; el sistema
+sirve para transferir.
+
 ### 5. Dar el veredicto de replicabilidad
 
 Obligatorio. Ver `references/replicabilidad-generativa.md`. Cada plano va a una de tres
@@ -193,3 +218,9 @@ Misma línea que ya sostienen `reference-scanner` y `analizar-carrusel-referenci
 Los umbrales no están estimados: salieron de medir contra respuesta conocida, y los fallos
 que los fijaron están registrados en `references/calibracion.md`. El banco se reproduce con
 `node scripts/calibrar.mjs --dir <carpeta>` y debe dar 7/7.
+
+Las compuertas de contrato se prueban aparte, con `node scripts/self-test.mjs`: comprueba que
+`validate-sistema.mjs` rechace una regla sin evidencia, una prohibición sin evidencia, un
+cambio deliberado sobre una regla inexistente y el romper la columna vertebral de la pieza sin
+declarar qué se gana; y que avise cuando el sistema no tiene prohibiciones, no tiene nada
+portable o se leyó sobre una cobertura parcial. Calibrar mide números, esto mide criterio.

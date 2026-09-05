@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SISTEMA_DE_PIEZA",
+  "description": "Lo que la pieza ES, no lo que la pieza TIENE. VIDEO_EVIDENCE y el desglose de planos producen un inventario: este plano tiene un dolly in, aquel es un primer plano. Un inventario se puede cumplir ítem por ítem y dar un resultado que no se parece en nada al original, porque lo que sostiene una pieza no vive en cada plano sino en las reglas que todos los planos obedecen y —sobre todo— en lo que la pieza sistemáticamente se niega a hacer. Este contrato captura eso, en términos portables a otro sujeto, otro entorno y otro objeto.",
+  "type": "object",
+  "required": ["contrato", "version", "derivado_de", "cobertura", "principio_organizador", "reglas", "prohibiciones"],
+  "additionalProperties": false,
+  "properties": {
+    "contrato": { "const": "SISTEMA_DE_PIEZA" },
+    "version": { "type": "string" },
+    "generado": { "type": "string" },
+    "derivado_de": {
+      "type": "string",
+      "description": "Ruta al VIDEO_EVIDENCE.json del que sale. El sistema se lee mirando frames, pero se ancla a una medición concreta."
+    },
+    "cobertura": {
+      "type": "object",
+      "required": ["planos_vistos", "planos_no_vistos"],
+      "description": "Qué se miró de verdad. Un sistema leído sobre la mitad de la pieza puede estar bien, pero no puede presentarse como completo.",
+      "properties": {
+        "planos_vistos": { "type": "array", "items": { "type": "integer" } },
+        "planos_no_vistos": { "type": "array", "items": { "type": "integer" } },
+        "limitaciones": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "principio_organizador": {
+      "type": "string",
+      "description": "Una frase: qué genera la pieza. No un resumen de lo que pasa, sino el mecanismo. 'Montaje rápido de una nadadora' es un resumen; 'nunca se ve al atleta entero, así que el espectador lo arma en su cabeza con equipo, piel y agua' es un principio. La prueba: si cambia el sujeto y el principio sigue siendo cierto, es un principio."
+    },
+    "motivo_recurrente": {
+      "type": "object",
+      "description": "El hilo que aparece en todos o casi todos los planos y que cose la pieza. Opcional: no toda pieza tiene uno.",
+      "properties": {
+        "descripcion": { "type": "string" },
+        "evidencia": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "reglas": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Lo que la pieza hace sistemáticamente.",
+      "items": {
+        "type": "object",
+        "required": ["id", "enunciado", "evidencia", "carga_identidad", "sobrevive_cambio_de_sujeto"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "enunciado": { "type": "string" },
+          "evidencia": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Timecodes o índices de plano concretos. Una regla sin evidencia es una opinión: el validador la rechaza."
+          },
+          "carga_identidad": {
+            "type": "boolean",
+            "description": "true si es columna vertebral: romperla cambia lo que la pieza es. false si es acabado."
+          },
+          "sobrevive_cambio_de_sujeto": {
+            "type": "boolean",
+            "description": "true si la regla sigue aplicando con otro personaje, otro entorno y otro objeto. Las que sobreviven son las únicas que sirven para construir una pieza distinta que no quede a medias."
+          }
+        }
+      }
+    },
+    "prohibiciones": {
+      "type": "array",
+      "description": "Lo que la pieza sistemáticamente NO hace. Es la parte que ningún inventario de planos registra —un desglose solo puede listar lo que está— y es la causa más común de que una reconstrucción cumpla todos los ítems y aun así no se parezca: nadie escribió 'nunca hay un plano general', así que la reconstrucción mete uno y rompe la pieza sin saber por qué.",
+      "items": {
+        "type": "object",
+        "required": ["id", "enunciado", "evidencia", "carga_identidad"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "enunciado": { "type": "string" },
+          "evidencia": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Cómo se comprobó la ausencia: qué planos se revisaron sin encontrarlo. Una ausencia declarada sin haber mirado es una suposición."
+          },
+          "carga_identidad": { "type": "boolean" }
+        }
+      }
+    },
+    "progresion": {
+      "type": "string",
+      "description": "Cómo evoluciona la pieza de principio a fin: escala, intensidad, información. El inventario tiene el orden pero no la curva."
+    },
+    "cambios_deliberados": {
+      "type": "array",
+      "description": "Reglas o prohibiciones que se decide romper a propósito en la pieza nueva. Romper la columna vertebral está permitido; hacerlo sin darse cuenta es exactamente lo que deja una pieza a medias.",
+      "items": {
+        "type": "object",
+        "required": ["rompe", "motivo"],
+        "additionalProperties": false,
+        "properties": {
+          "rompe": { "type": "string", "description": "id de una regla o de una prohibición declarada arriba." },
+          "motivo": { "type": "string" },
+          "que_gano": {
+            "type": "string",
+            "description": "Obligatorio si lo que se rompe tiene carga_identidad:true. Qué se gana a cambio de dejar de ser esa pieza."
+          }
+        }
+      }
+    }
+  }
+}
