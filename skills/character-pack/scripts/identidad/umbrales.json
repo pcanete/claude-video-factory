@@ -1,0 +1,11 @@
+{
+  "_origen": "Calibrado el 2026-09-14 con las originales frontales de la sesión de la ventana contra el master (2, 35, 37, 38, 41, 43, 44, 45, 46: identidad 0,854-0,958; mandíbula ±2,2%; geometría máxima 2,2-7,5%) y con el logo de las vistas P3 v2 (bien impreso 0,86-0,92; tapado por pelo o roto 0,37-0,59). La identidad se mide contra la vista equivalente del pack, no contra el master.",
+  "identidad_referencia_min": 0.85,
+  "geo_mandibula_max_pct": 3.0,
+  "geo_max_pct": 8.0,
+  "proporcion": [2.0, 2.35],
+  "exigir_logo": true,
+  "logo_iou_min": 0.8,
+  "delta_ab_max": 3.0,
+  "grano_rel": [0.8, 1.25]
+}

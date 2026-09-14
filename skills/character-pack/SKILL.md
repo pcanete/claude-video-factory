@@ -6,12 +6,13 @@ description: >
   escalas de plano, rango de expresiones probado (no asumido), wardrobe locks y un manifiesto
   que declara qué mecanismo de identidad sostiene cada pieza y qué límites tiene. Usar SIEMPRE
   que se pida armar, actualizar o auditar el pack de identidad de un personaje para producción
-  de video o imagen con IA generativa. No usar para generar contenido final de una pieza (eso
+  de video o imagen con IA generativa, sostener la consistencia de un personaje sin LoRA, o
+  medir objetivamente si una imagen nueva sigue siendo el mismo personaje. No usar para generar contenido final de una pieza (eso
   es shot-builder, cuando exista) ni para entrenar un LoRA desde cero (ese paso es previo y
   específico de cada motor de generación).
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Character Pack — identidad como activo, no como generación suelta
@@ -44,6 +45,51 @@ dice con todas las letras que faltan aprobar. Mismo criterio que ya sostienen
 Casi ningún personaje real arranca de cero. Buscar en la carpeta del cliente pruebas previas
 de ángulos, escenas, o comparativas de realismo antes de gastar en generación nueva. Ver
 `references/inventario-antes-de-generar.md`.
+
+## Reglas duras de consistencia sin LoRA
+
+Probadas con un personaje real de producción; el detalle y la evidencia están en
+`references/consistencia-sin-lora.md`. No son sugerencias: si una no se cumple, no se genera.
+
+1. **Una semilla canónica, inmutable.** Si hay que cambiarla, es una versión nueva del pack y se
+   rehace todo lo derivado.
+2. **Nunca una referencia derivada.** Toda generación parte de la semilla o de una vista del pack
+   ya auditada. Nunca de una salida de la sesión: la deriva se acumula en cada paso.
+3. **Cambiar ropa, peinado o escena = editar la vista del pack y después recomponer la cara**
+   (`scripts/identidad/recomponer_cara.py`). La cara nunca pasa por el modelo.
+4. **No describir la cara ni la piel en el prompt.** Se pide "exactamente como en la foto de
+   referencia". Todo detalle que se nombra (una marca, un lunar) sale exagerado.
+5. **No usar fotos de prenda con otro cuerpo como referencia.** El modelo copia esa proporción:
+   achica hombros aunque el prompt diga que es solo para la prenda. Alcanza con el logo oficial y
+   la descripción de la prenda, más la instrucción explícita de mantener hombros y distancia de
+   cámara.
+6. **Trazabilidad.** Cada lote deja `registro.ndjson` junto a sus salidas; `ledger.py` los junta
+   en un `ledger.csv` del personaje. El costo del lote se avisa antes de correrlo.
+7. **Lo que no se audita, derivó.** Ninguna imagen entra al pack sin `auditar.py`. La auditoría
+   presenta números y un checklist sin tildar: nunca autoaprueba.
+
+## Auditoría objetiva (`scripts/identidad/`)
+
+Requiere Python 3 con `opencv-contrib-python`, `mediapipe` y `numpy`, y cuatro modelos en una
+carpeta: `face_detection_yunet_2023mar.onnx` y `face_recognition_sface_2021dec.onnx` (de
+github.com/opencv/opencv_zoo), `face_landmarker.task` y `pose_landmarker_heavy.task` (de
+storage.googleapis.com/mediapipe-models). Pedir permiso antes de descargarlos.
+
+| Herramienta | Qué hace |
+|---|---|
+| `auditar.py` | Ficha por imagen: identidad (SFace contra la vista equivalente del pack), geometría facial 3D con la mandíbula primero, hombros ÷ cara, logo contra el archivo oficial, color y grano contra la semilla. Con `umbrales.json` marca ok / falla / revisar / n/a. |
+| `calibrar.py` | Iguala formato, nitidez, grano y color de piel a la semilla, sin modelos generativos. |
+| `recomponer_cara.py` | Devuelve la cara de la vista del pack a una edición (alineación por malla facial y máscara suave). También genera máscaras para edición por región. |
+| `medir_proporcion.py`, `normalizar_caras.py` | Proporción hombros ÷ cara en lote, y hoja comparativa con las caras a la misma escala. |
+| `pack_medir.py`, `ledger.py` | Base de identidad y calibración; ledger consolidado. |
+
+- **Umbrales por personaje:** se calibran con la variación de su propia semilla (fotos de la
+  misma sesión contra el master), nunca con valores genéricos. `umbrales.json` trae los de
+  Valentina Muzzo como ejemplo documentado.
+- **Solo las vistas frontales** (nariz entre 35% y 65% del ancho de pómulos) permiten comparar
+  geometría, proporción, logo y color. En ángulos solo vale la identidad contra la vista
+  equivalente; en perfil la geometría da desvíos del 55-60% sin que haya deriva.
+- **Logo bajo = revisar, no descartar.** El pelo suele taparlo.
 
 ## El contrato: `CHARACTER_PACK.json`
 
@@ -99,7 +145,10 @@ node scripts/self-test.mjs
 5. **Probar expresiones**, no asumirlas. Generar, mirar, y recién ahí escribir
    `sostiene_identidad: true` o `false`. Un `false` con evidencia vale más que evitar la
    pregunta.
-6. **Registrar wardrobe como candidato.** Nunca aprobarlo por cuenta propia.
+6. **Registrar wardrobe como candidato.** Nunca aprobarlo por cuenta propia. Cada look nuevo se
+   hace editando las vistas del pack y recomponiendo la cara (regla 3).
+6b. **Calibrar y auditar** cada imagen nueva (`calibrar.py`, `auditar.py`) contra su vista
+   equivalente. Entra al pack solo si pasa los números y la revisión humana.
 7. **Escribir `variacion_permitida`/`deriva_prohibida` y `limites_conocidos`** con lo que ya
    se sabía (huecos de entrenamiento) y lo que se descubrió al probar expresiones nuevas.
 8. **Costo:** antes de generar un lote, decir el costo total estimado. Cada llamada individual

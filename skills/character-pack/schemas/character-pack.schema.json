@@ -126,6 +126,18 @@
         }
       }
     },
+    "auditoria": {
+      "type": "object",
+      "description": "Opcional (1.1.0). Cómo se audita objetivamente la identidad de cada imagen del pack: herramienta, umbrales calibrados con la propia semilla, de dónde salió la calibración y dónde está el ledger. La auditoría nunca autoaprueba.",
+      "required": ["herramienta", "umbrales"],
+      "properties": {
+        "herramienta": { "type": "string" },
+        "umbrales": { "type": "string" },
+        "calibracion_umbrales": { "type": "string" },
+        "ledger": { "type": "string" },
+        "regla": { "type": "string" }
+      }
+    },
     "ids_por_plataforma": {
       "type": "object",
       "description": "Mapeo opcional a IDs de identidad entrenados en plataformas de generación (Soul ID, etc.). Se trata como caché: puede quedar vacío o desactualizarse sin que el pack pierda validez.",
