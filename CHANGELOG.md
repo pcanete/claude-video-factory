@@ -1,5 +1,39 @@
 # Changelog
 
+## character-pack 1.1.0 — 2026-09-14
+
+Consistencia de personaje sin LoRA, con la identidad medida en lugar de juzgada a ojo. Sale de
+cinco días de producción real con un personaje sintético (Valentina Muzzo) y de contrastar un
+machete externo con esa evidencia: donde se contradijeron, mandó la prueba.
+
+- **Reglas duras** en `SKILL.md`: semilla canónica inmutable, nunca referencia derivada, cambiar ropa
+  o escena editando la vista del pack y recomponiendo la cara, no describir la piel en el prompt,
+  no usar fotos de prenda con otro cuerpo, ledger, auditar siempre.
+- **`scripts/identidad/`** (Python: `opencv-contrib-python`, `mediapipe`, `numpy`; los modelos se
+  descargan aparte, ver `SKILL.md`):
+  - `auditar.py`: ficha por imagen con identidad SFace contra la vista equivalente, geometría facial
+    3D (mandíbula primero), hombros ÷ cara, logo contra el archivo oficial, color y grano. Presenta
+    números y un checklist sin tildar; nunca autoaprueba.
+  - `calibrar.py`: iguala formato, nitidez, grano y color a la semilla, sin modelos generativos.
+  - `recomponer_cara.py`: edición por región sin modelo. Devuelve la cara de la vista del pack a una
+    edición, alineada por malla facial.
+  - `medir_proporcion.py`, `normalizar_caras.py`, `pack_medir.py`, `ledger.py`.
+- **Schema:** bloque opcional `auditoria`.
+- **`references/consistencia-sin-lora.md`:** qué se confirmó, qué se corrigió y con qué número.
+
+**Calibración y sus límites, declarados:**
+- Los umbrales de `umbrales.json` se calibraron contra fotos reales de la misma sesión de la semilla
+  (identidad 0,85-0,96, mandíbula ±2,2%), no contra un banco sintético de respuesta conocida, como pide
+  `CONTRIBUTING.md` para el escáner. Son un ejemplo por personaje, no valores universales: cada
+  personaje calibra los suyos.
+- Recomponer la cara subió la identidad mediana de un look nuevo de 0,898 a 0,924, medida en 13 vistas.
+- Geometría, proporción, logo y color solo valen en vistas frontales: en perfil la geometría da desvíos
+  del 55-60% sin que haya deriva.
+- Las herramientas Python no tienen suite automática en `npm test`, porque necesitan modelos
+  descargados. Se verificaron por sintaxis y contra imágenes reales.
+- Sobre la invariante "el script mide, el agente interpreta": `auditar.py` solo compara números con
+  umbrales que el usuario declara, y no emite juicio sobre la imagen.
+
 ## shot-builder 1.1.0 — 2026-09-04
 
 Dos mecanismos incorporados desde la auditoría cruzada con la edición Codex del

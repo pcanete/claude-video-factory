@@ -48,7 +48,7 @@ Debe dar 7/7. El procedimiento completo —qué mirar en la evidencia, cómo sin
 El escáner es la primera pieza. Encaja en un pipeline más largo, todavía no construido:
 
 1. **`video-reference-scanner`** — descifrar una referencia. *Construido.*
-2. **`character-pack`** — convertir la identidad de un personaje en un activo versionado y portable entre herramientas, en vez de un ID encerrado en un vendor.
+2. **`character-pack`** — convertir la identidad de un personaje en un activo versionado y portable entre herramientas, en vez de un ID encerrado en un vendor. *Construido.* Desde 1.1.0 audita la identidad con números (rostro, geometría, proporciones, vestuario, calibración) y sostiene la consistencia sin LoRA.
 3. **`shot-builder`** — de guion a shot list contractual, compilada al dialecto de la herramienta de generación elegida.
 4. **QA de continuidad** — detectar deriva de identidad, vestuario y luz entre planos antes de ensamblar.
 
