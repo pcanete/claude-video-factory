@@ -215,6 +215,8 @@ def main():
     medidor = Medidor(args.modelos)
     logo = logo_oficial(args.logo) if args.logo else None
     semilla = medidor.medir(args.semilla)
+    if 'embedding' not in semilla:
+        raise SystemExit(f'No se detecta una cara en la semilla {args.semilla}: elegir otra imagen o recortarla.')
     referencia = medidor.medir(args.referencia) if args.referencia else semilla
     umbrales = json.loads(args.umbrales.read_text(encoding='utf-8')) if args.umbrales else None
 

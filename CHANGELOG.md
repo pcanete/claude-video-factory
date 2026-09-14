@@ -1,5 +1,11 @@
 # Changelog
 
+## character-pack 1.1.1 — 2026-09-14
+
+- `auditar.py` ahora avisa con un mensaje claro si la semilla no tiene una cara detectable. Antes se cortaba
+  con un `KeyError`. Encontrado al auditar un set de terceros cuya imagen de referencia llenaba el cuadro con
+  la cara.
+
 ## character-pack 1.1.0 — 2026-09-14
 
 Consistencia de personaje sin LoRA, con la identidad medida en lugar de juzgada a ojo. Sale de

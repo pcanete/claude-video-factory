@@ -12,7 +12,7 @@ description: >
   específico de cada motor de generación).
 license: MIT
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Character Pack — identidad como activo, no como generación suelta
